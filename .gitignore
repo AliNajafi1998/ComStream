@@ -1,1 +1,6 @@
 Data/
+RawData/
+.ipynb_checkpoints
+Algo/env/
+Algo/.idea
+
