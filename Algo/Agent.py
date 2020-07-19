@@ -6,9 +6,9 @@ from .Utils import get_distance_tf_idf_cosine
 class Agent:
     agent_id = 0
 
-    def __init__(self, king_agent: KingAgent, outlier_threshold):
+    def __init__(self, king_agent: KingAgent):
         self.agent_id = Agent.agent_id
-        self.outlier_threshold = outlier_threshold
+        self.outlier_threshold = king_agent.outlier_threshold
         Agent.agent_id += 1
         self.agent_global_tf = {}
         self.weight = 1
