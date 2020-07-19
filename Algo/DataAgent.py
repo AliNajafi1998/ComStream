@@ -10,12 +10,15 @@ import os
 class DataAgent:
     token_id = 0
     current_dp_index = 0
+    terms_global_frequency = 0
 
-    def __init__(self, count: int):
+    def __init__(self, count: int, epsilon=1e-3):
+        self.epsilon = epsilon
         self.raw_data = None
         self.token_to_id = {}
         self.global_tf = {}
         self.count = count
+        self.data_points = {}
 
         os.chdir('..')
         self.load_data(os.getcwd() + 'Data/data_cleaned.pkl', count=count)
@@ -29,6 +32,7 @@ class DataAgent:
 
         # Extracting Data
         tf_dict = self.get_tf_dict(tweet)
+
         time_stamp = datetime.now()
         user_id = dp['user_id'].values[0]
         status_id = dp['status_id'].values[0]
@@ -63,4 +67,6 @@ class DataAgent:
             return None
         else:
             DataAgent.current_dp_index += 1
-            return self.get_dp(self.raw_data.iloc[[DataAgent.current_dp_index - 1]])
+            dp = self.get_dp(self.raw_data.iloc[[DataAgent.current_dp_index - 1]])
+            self.data_points[dp.dp_id] = dp
+            return dp
