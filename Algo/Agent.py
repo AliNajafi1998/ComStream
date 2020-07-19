@@ -25,9 +25,20 @@ class Agent:
         for token_id, frequency in dp.tf.items():
             if token_id in self.agent_global_tf:
                 self.agent_global_tf[token_id] += frequency
+                self.update_global_tf(frequency, token_id)
             else:
                 self.agent_global_tf[token_id] = frequency
+                self.update_global_tf(frequency, token_id)
+
         self.dp_ids.append(dp.dp_id)
+
+    def update_global_tf(self, frequency, token_id):
+        if token_id in self.king_agent.data_agent.global_tf:
+            self.king_agent.data_agent.global_tf[token_id] += frequency
+            self.king_agent.data_agent.terms_global_weight += frequency
+        else:
+            self.king_agent.data_agent.global_tf[token_id] = frequency
+            self.king_agent.data_agent.terms_global_weight += frequency
 
     def remove_data_point(self, dp_id: int) -> None:
         """
@@ -37,6 +48,10 @@ class Agent:
         """
         try:
             self.dp_ids.remove(dp_id)
+            for token_id, frequency in self.king_agent.data_agent.data_points[dp_id].tf.items():
+                self.king_agent.data_agent.global_tf[token_id] -= frequency
+                self.king_agent.data_agent.terms_global_frequency -= frequency
+            del self.king_agent.data_agent.data_points[dp_id]
         except ValueError:
             print(f'There is no such data point in Agent : {dp_id}')
 
