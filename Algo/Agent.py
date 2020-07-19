@@ -1,15 +1,19 @@
+from .KingAgent import KingAgent
 from .DataPoint import DataPoint
+from .Utils import get_distance_tf_idf_cosine
 
 
 class Agent:
     agent_id = 0
 
-    def __init__(self):
+    def __init__(self, king_agent: KingAgent, outlier_threshold):
         self.agent_id = Agent.agent_id
+        self.outlier_threshold = outlier_threshold
         Agent.agent_id += 1
-        self.global_tf = {}
+        self.agent_global_tf = {}
         self.weight = 1
         self.dp_ids = []
+        self.king_agent = king_agent
 
     def add_data_point(self, dp: DataPoint) -> None:
         """
@@ -19,10 +23,10 @@ class Agent:
         """
         self.weight += 1
         for token_id, frequency in dp.tf.items():
-            if token_id in self.global_tf:
-                self.global_tf[token_id] += frequency
+            if token_id in self.agent_global_tf:
+                self.agent_global_tf[token_id] += frequency
             else:
-                self.global_tf[token_id] = frequency
+                self.agent_global_tf[token_id] = frequency
         self.dp_ids.append(dp.dp_id)
 
     def remove_data_point(self, dp_id: int) -> None:
@@ -47,3 +51,11 @@ class Agent:
         else:
             self.weight = self.weight * (1 - fade_rate)
 
+    def get_outliers(self) -> list:
+        outliers_id = []
+        for dp_id in self.dp_ids:
+            dp = self.king_agent.data_agent.data_points[dp_id]
+            distance = get_distance_tf_idf_cosine(self.king_agent.data_agent, dp.tf, self.agent_global_tf)
+            if distance > self.outlier_threshold:
+                outliers_id.append(dp_id)
+        return outliers_id
