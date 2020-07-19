@@ -52,6 +52,10 @@ class Agent:
             self.weight = self.weight * (1 - fade_rate)
 
     def get_outliers(self) -> list:
+        """
+        Getting outliers of agent
+        :return: list of ids of outliers
+        """
         outliers_id = []
         for dp_id in self.dp_ids:
             dp = self.king_agent.data_agent.data_points[dp_id]
