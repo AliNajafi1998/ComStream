@@ -3,19 +3,27 @@ from .DataPoint import DataPoint
 import pandas as pd
 from datetime import datetime
 
+import os
+
 
 @Singleton
 class DataAgent:
     token_id = 0
     current_dp_index = 0
 
-    def __init__(self):
+    def __init__(self, count: int):
         self.raw_data = None
         self.token_to_id = {}
         self.data_points = []
 
-    def load_data(self, path: str) -> None:
-        self.raw_data = pd.read_csv(path)
+        os.chdir('..')
+        self.load_data(os.getcwd() + 'Data/data_cleaned.pkl', count=count)
+        os.chdir('./Algo')
+
+        self.vectorize_data()
+
+    def load_data(self, path: str, count: int) -> None:
+        self.raw_data = pd.read_csv(path).head(count)
 
     def vectorize_data(self) -> None:
         for i in range(len(self.raw_data)):
