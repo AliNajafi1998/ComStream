@@ -67,7 +67,8 @@ class KingAgent:
             else:
                 print('Sth went wrong!')
         outliers_to_join = sorted(outliers_to_join, key=lambda tup: tup[1])
-        outliers_to_join = outliers_to_join[:self.top_n]
+        if self.top_n < len(outliers_to_join):
+            outliers_to_join = outliers_to_join[:self.top_n]
 
         for dp_id, distance, agent_id in outliers_to_join:
             if distance > self.radius:
@@ -106,7 +107,8 @@ class KingAgent:
             self.agents[similar_agent_id].add_data_point(self.data_agent.data_points[dp.dp_id])
 
     def fade_agents(self):
-        for agent_id, agent in self.agents.items():
+        for agent_id in list(self.agents.keys()):
+            agent = self.agents[agent_id]
             agent.fade_agent(self.fading_rate)
             if agent.weight < self.data_agent.epsilon:
                 self.remove_agent(agent_id)
@@ -120,7 +122,7 @@ class KingAgent:
         self.handle_outliers()
 
         while self.data_agent.has_next_dp():
-
+            print(f'number of agents : {len(self.agents)}')
             self.stream()
 
             residual = time.mktime(DataAgent.date.timetuple()) % get_seconds(self.communication_step)

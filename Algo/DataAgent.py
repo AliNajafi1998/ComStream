@@ -25,7 +25,7 @@ class DataAgent:
         chdir('./Algo')
 
     def load_data(self, file_path: str, count: int) -> None:
-        self.raw_data = pd.read_pickle(file_path).head(count)
+        self.raw_data = pd.read_pickle(file_path).reset_index().head(count)
 
     def get_dp(self, dp: pd.DataFrame) -> DataPoint:
         tweet = dp['text'].values[0]

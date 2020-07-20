@@ -54,6 +54,7 @@ class Agent:
             self.weight -= 1
             if self.weight <= 0:
                 self.weight = 0
+            # print(self.king_agent.data_agent.data_points.keys())
             for token_id, frequency in self.king_agent.data_agent.data_points[dp_id].tf.items():
                 self.king_agent.data_agent.global_tf[token_id] -= frequency
                 self.king_agent.data_agent.terms_global_frequency -= frequency
@@ -82,6 +83,7 @@ class Agent:
             dp = self.king_agent.data_agent.data_points[dp_id]
             distance = self.get_distance(self.king_agent.data_agent, dp.tf)
             if distance > self.outlier_threshold:
+                self.dp_ids.remove(dp_id)
                 outliers_id.append(dp_id)
         return outliers_id
 
