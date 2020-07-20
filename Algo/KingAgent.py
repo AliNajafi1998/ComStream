@@ -1,7 +1,6 @@
 from .Singelton import Singleton
 from .DataAgent import DataAgent
 from .Agent import Agent
-from .Utils import get_distance_tf_idf_cosine
 import random
 
 
@@ -46,8 +45,7 @@ class KingAgent:
             min_distance = float('infinity')
             similar_agent_id = -1
             for agent_id, agent in self.agents.items():
-                distance = get_distance_tf_idf_cosine(self.data_agent, self.data_agent.data_points[outlier_id].tf,
-                                                      agent.agent_global_tf)
+                distance = agent.get_distance(self.data_agent, self.data_agent.data_points[outlier_id].tf)
                 if distance <= min_distance:
                     min_distance = distance
                     similar_agent_id = agent_id
@@ -84,8 +82,7 @@ class KingAgent:
         min_distance = float('infinity')
         similar_agent_id = -1
         for agent_id, agent in self.agents.items():
-            distance = get_distance_tf_idf_cosine(self.data_agent, self.data_agent.data_points[dp.dp_id].tf,
-                                                  agent.agent_global_tf)
+            distance = agent.get_distance(self.data_agent, self.data_agent.data_points[dp.dp_id].tf)
             if distance <= min_distance:
                 min_distance = distance
                 similar_agent_id = agent_id
@@ -98,9 +95,13 @@ class KingAgent:
     def clean_up(self):
         for agent_id, agent in self.agents.items():
             agent.fade_agent(self.fading_rate)
+            if agent.weight < self.data_agent.epsilon:
+                self.remove_agent(agent_id)
 
     def train(self):
         self.warm_up()
+        self.handle_outliers()
+
         counter = 0
         while self.data_agent.has_next_dp():
 
