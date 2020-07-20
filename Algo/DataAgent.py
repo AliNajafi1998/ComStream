@@ -2,8 +2,9 @@ from .Singelton import Singleton
 from .DataPoint import DataPoint
 import pandas as pd
 from datetime import datetime
+from collections import defaultdict
 
-import os
+from os import getcwd, path, chdir
 
 
 @Singleton
@@ -20,9 +21,9 @@ class DataAgent:
         self.count = count
         self.data_points = {}
 
-        os.chdir('..')
-        self.load_data(os.getcwd() + 'Data/data_cleaned.pkl', count=count)
-        os.chdir('./Algo')
+        chdir('..')
+        self.load_data(path.join(getcwd(), 'Data/data_cleaned.pkl'), count=count)
+        chdir('./Algo')
 
     def load_data(self, path: str, count: int) -> None:
         self.raw_data = pd.read_csv(path).head(count)
@@ -49,13 +50,11 @@ class DataAgent:
 
     def get_tf_dict(self, tweet: str) -> dict:
         tweet_tokens = tweet.split()
-        tf_dict = {}
+
+        tf_dict = defaultdict(0)
         for token in tweet_tokens:
             if token in self.token_to_id:
-                if token in tf_dict:
-                    tf_dict[token] += 1
-                else:
-                    tf_dict[token] = 1
+                tf_dict[token] += 1
             else:
                 self.token_to_id[token] = DataAgent.token_id
                 DataAgent.token_id += 1
