@@ -9,6 +9,7 @@ from os import getcwd, path, chdir
 
 @Singleton
 class DataAgent:
+    date = pd.to_datetime('2000-05-29T00:00:12Z')
     token_id = 0
     current_dp_index = 0
     terms_global_frequency = 0
@@ -22,7 +23,7 @@ class DataAgent:
         self.data_points = {}
 
         chdir('..')
-        self.load_data(path.join(getcwd(), 'Data/data_cleaned.pkl'), count=count)
+        self.load_data(path.join(getcwd(), 'Data/data_cleaned1.pkl'), count=count)
         chdir('./Algo')
 
     def load_data(self, file_path: str, count: int) -> None:
@@ -41,6 +42,9 @@ class DataAgent:
         is_verified = dp['verified'].values[0]
         favourites_count = dp['favourites_count'].values[0]
         retweet_count = dp['retweet_count'].values[0]
+
+        # Updating Current Date
+        DataAgent.date = pd.to_datetime(created_at)
 
         return DataPoint(
             tf=tf_dict, time_stamp=time_stamp,
