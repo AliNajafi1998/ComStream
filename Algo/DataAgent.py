@@ -25,8 +25,8 @@ class DataAgent:
         self.load_data(path.join(getcwd(), 'Data/data_cleaned.pkl'), count=count)
         chdir('./Algo')
 
-    def load_data(self, path: str, count: int) -> None:
-        self.raw_data = pd.read_csv(path).head(count)
+    def load_data(self, file_path: str, count: int) -> None:
+        self.raw_data = pd.read_csv(file_path).head(count)
 
     def get_dp(self, dp: pd.DataFrame) -> DataPoint:
         tweet = dp['text'].values[0]
