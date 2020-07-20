@@ -1,6 +1,7 @@
 from .Singelton import Singleton
 from .DataAgent import DataAgent
 from .Agent import Agent
+from .Utils import get_distance_tf_idf_cosine
 import random
 
 
@@ -14,7 +15,8 @@ class KingAgent:
                  clean_up_step: int,
                  top_n: int,
                  dp_count: int,
-                 fading_rate):
+                 fading_rate,
+                 generic_distance=get_distance_tf_idf_cosine):
         self.agents = {}
         self.radius = radius
         self.fading_rate = fading_rate
@@ -25,9 +27,10 @@ class KingAgent:
         self.top_n = top_n
         self.clean_up_step = clean_up_step
         self.data_agent = DataAgent(count=dp_count)
+        self.generic_distance_function = generic_distance
 
     def create_agent(self) -> int:
-        agent = Agent(self)
+        agent = Agent(self, generic_distance_function=self.generic_distance_function)
         self.agents[agent.agent_id] = agent
         return agent.agent_id
 
