@@ -1,5 +1,4 @@
-from .Singelton import Singleton
-from .DataPoint import DataPoint
+from DataPoint import DataPoint
 import pandas as pd
 from datetime import datetime
 from collections import defaultdict
@@ -7,7 +6,6 @@ from collections import defaultdict
 from os import getcwd, path, chdir
 
 
-@Singleton
 class DataAgent:
     date = pd.to_datetime('2000-05-29T00:00:12Z')
     token_id = 0
@@ -27,7 +25,7 @@ class DataAgent:
         chdir('./Algo')
 
     def load_data(self, file_path: str, count: int) -> None:
-        self.raw_data = pd.read_csv(file_path).head(count)
+        self.raw_data = pd.read_pickle(file_path).head(count)
 
     def get_dp(self, dp: pd.DataFrame) -> DataPoint:
         tweet = dp['text'].values[0]
@@ -55,10 +53,10 @@ class DataAgent:
     def get_tf_dict(self, tweet: str) -> dict:
         tweet_tokens = tweet.split()
 
-        tf_dict = defaultdict(0)
+        tf_dict = defaultdict(lambda: 0)
         for token in tweet_tokens:
             if token in self.token_to_id:
-                tf_dict[token] += 1
+                tf_dict[self.token_to_id[token]] += 1
             else:
                 self.token_to_id[token] = DataAgent.token_id
                 DataAgent.token_id += 1

@@ -1,15 +1,14 @@
 from typing import Callable
 
-from .KingAgent import KingAgent
-from .DataPoint import DataPoint
-from .DataAgent import DataAgent
-from .Utils import get_seconds
+from DataPoint import DataPoint
+from DataAgent import DataAgent
+from Utils import get_seconds
 
 
 class Agent:
     agent_id = 0
 
-    def __init__(self, king_agent: KingAgent, generic_distance_function: Callable):
+    def __init__(self, king_agent, generic_distance_function: Callable):
         self.agent_id = Agent.agent_id
         self.outlier_threshold = king_agent.outlier_threshold
         Agent.agent_id += 1
@@ -39,10 +38,10 @@ class Agent:
     def update_global_tf(self, frequency, token_id):
         if token_id in self.king_agent.data_agent.global_tf:
             self.king_agent.data_agent.global_tf[token_id] += frequency
-            self.king_agent.data_agent.terms_global_weight += frequency
+            self.king_agent.data_agent.terms_global_frequency += frequency
         else:
             self.king_agent.data_agent.global_tf[token_id] = frequency
-            self.king_agent.data_agent.terms_global_weight += frequency
+            self.king_agent.data_agent.terms_global_frequency += frequency
 
     def remove_data_point(self, dp_id: int) -> None:
         """

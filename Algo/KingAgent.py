@@ -1,17 +1,16 @@
-from .Singelton import Singleton
-from .DataAgent import DataAgent
-from .Agent import Agent
-from .Utils import get_distance_tf_idf_cosine, get_seconds
+from DataAgent import DataAgent
+from Agent import Agent
+from Utils import get_distance_tf_idf_cosine, get_seconds
 import random
 import re
 import time
 
 
-@Singleton
 class KingAgent:
     prev_residual = 0
 
-    def __init__(self, max_topic_count,
+    def __init__(self,
+                 max_topic_count: int,
                  communication_step: str,
                  clean_up_step: str,
                  radius: float,
@@ -83,7 +82,7 @@ class KingAgent:
 
         agents_dict = {id_: self.alpha for id_ in self.agents.keys()}
         for i in range(self.max_topic_count * self.alpha):
-            random_agent_id = random.sample(list(agents_dict))
+            random_agent_id = random.sample(list(agents_dict), k=1)[0]
             dp = self.data_agent.get_next_dp()
             self.agents[random_agent_id].add_data_point(dp)
             agents_dict[random_agent_id] -= 1
