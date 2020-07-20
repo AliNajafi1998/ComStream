@@ -45,3 +45,9 @@ def calculate_idf(data_agent: DataAgent, tf1: dict, tf2: dict):
                 idf_dictionary[term] = 1.0 + log(terms_global_frequency / data_agent.global_tf[term])
 
     return idf_dictionary
+
+
+def get_seconds(time: str):
+    s = time.split(':')
+    seconds = float(s[2]) + float(s[1]) * 60 + float(s[0]) * 3600
+    return seconds
