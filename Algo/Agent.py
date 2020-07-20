@@ -3,6 +3,7 @@ from typing import Callable
 from .KingAgent import KingAgent
 from .DataPoint import DataPoint
 from .DataAgent import DataAgent
+from .Utils import get_seconds
 
 
 class Agent:
@@ -87,3 +88,10 @@ class Agent:
 
     def get_distance(self, data_agent: DataAgent, tf: dict):
         return self.generic_distance_function(data_agent, tf, self.agent_global_tf)
+
+    def handle_old_dps(self):
+        for dp_id in self.dp_ids:
+            dp = self.king_agent.data_agent.data_points[dp_id]
+            if abs((dp.created_at - self.king_agent.data_agent.date).total_seconds()) > get_seconds(
+                    self.king_agent.clean_up_deltatime):
+                self.remove_data_point(dp_id)
