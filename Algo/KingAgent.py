@@ -1,22 +1,33 @@
 from .Singelton import Singleton
 from .DataAgent import DataAgent
 from .Agent import Agent
-from .Utils import get_distance_tf_idf_cosine
+from .Utils import get_distance_tf_idf_cosine, get_seconds
 import random
+import re
+import time
 
 
 @Singleton
 class KingAgent:
+    prev_residual = 0
+
     def __init__(self, max_topic_count,
-                 communication_step: int,
+                 communication_step: str,
+                 clean_up_step: str,
                  radius: float,
                  alpha: int,
                  outlier_threshold: float,
-                 clean_up_step: int,
                  top_n: int,
                  dp_count: int,
                  fading_rate,
                  generic_distance=get_distance_tf_idf_cosine):
+
+        pattern = re.compile(r'^[0-9]+:[0-9]{2}:[0-9]{2}$')
+        are_invalid_steps = len(pattern.findall(communication_step)) != 1 or len(pattern.findall(clean_up_step)) != 1
+
+        if are_invalid_steps:
+            raise Exception(f'Invalid inputs fot steps')
+
         self.agents = {}
         self.radius = radius
         self.fading_rate = fading_rate
@@ -25,7 +36,7 @@ class KingAgent:
         self.max_topic_count = max_topic_count
         self.outlier_threshold = outlier_threshold
         self.top_n = top_n
-        self.clean_up_step = clean_up_step
+        self.clean_up_deltatime = clean_up_step
         self.data_agent = DataAgent(count=dp_count)
         self.generic_distance_function = generic_distance
 
@@ -95,23 +106,28 @@ class KingAgent:
         else:
             self.agents[similar_agent_id].add_data_point(self.data_agent.data_points[dp.dp_id])
 
-    def clean_up(self):
+    def fade_agents(self):
         for agent_id, agent in self.agents.items():
             agent.fade_agent(self.fading_rate)
             if agent.weight < self.data_agent.epsilon:
                 self.remove_agent(agent_id)
 
+    def handle_old_dps(self):
+        for agent_id, agent in self.agents.items():
+            agent.handle_old_dps()
+
     def train(self):
         self.warm_up()
         self.handle_outliers()
 
-        counter = 0
         while self.data_agent.has_next_dp():
 
             self.stream()
 
-            if (counter + 1) % self.communication_step == 0:
+            residual = time.mktime(DataAgent.date.timetuple()) % get_seconds(self.communication_step)
+            if residual < KingAgent.prev_residual:
+                KingAgent.prev_residual = 0
+                self.handle_old_dps()
                 self.handle_outliers()
-                self.clean_up()
-
-            counter += 1
+                self.fade_agents()
+            KingAgent.prev_residual = residual
