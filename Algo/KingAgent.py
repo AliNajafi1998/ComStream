@@ -1,6 +1,6 @@
 from DataAgent import DataAgent
 from Agent import Agent
-from Utils import get_distance_tf_idf_cosine, get_seconds
+from Utils import get_distance_tf_itf_cosine, get_seconds
 import random
 import re
 import time
@@ -19,7 +19,7 @@ class KingAgent:
                  top_n: int,
                  dp_count: int,
                  fading_rate,
-                 generic_distance=get_distance_tf_idf_cosine):
+                 generic_distance=get_distance_tf_itf_cosine):
 
         pattern = re.compile(r'^[0-9]+:[0-9]{2}:[0-9]{2}$')
         are_invalid_steps = len(pattern.findall(communication_step)) != 1 or len(pattern.findall(clean_up_step)) != 1

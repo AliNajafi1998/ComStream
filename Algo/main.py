@@ -1,5 +1,5 @@
 from KingAgent import KingAgent
-from Utils import get_distance_tf_idf_cosine
+from Utils import get_distance_tf_itf_cosine
 
 king = KingAgent(max_topic_count=10,
                  communication_step="00:00:10",
@@ -10,7 +10,7 @@ king = KingAgent(max_topic_count=10,
                  top_n=50,
                  dp_count=10000,
                  fading_rate=0.3,
-                 generic_distance=get_distance_tf_idf_cosine)
+                 generic_distance=get_distance_tf_itf_cosine)
 
 king.train()
 

@@ -2,8 +2,8 @@ from math import sqrt, log
 from DataAgent import DataAgent
 
 
-def get_distance_tf_idf_cosine(data_agent: DataAgent, tf1: dict, tf2: dict):
-    idf = calculate_idf(data_agent, tf1, tf2)
+def get_distance_tf_itf_cosine(data_agent: DataAgent, tf1: dict, tf2: dict):
+    idf = calculate_itf(data_agent, tf1, tf2)
 
     sum_product_dots = 0.0
     dp1_tf_idf_length = 0.0
@@ -27,9 +27,9 @@ def get_distance_tf_idf_cosine(data_agent: DataAgent, tf1: dict, tf2: dict):
         return 1.0 - (sum_product_dots / (dp1_tf_idf_length * dp2_tf_idf_length))
 
 
-def calculate_idf(data_agent: DataAgent, tf1: dict, tf2: dict):
+def calculate_itf(data_agent: DataAgent, tf1: dict, tf2: dict):
     terms_global_frequency = data_agent.terms_global_frequency
-    idf_dictionary = dict()
+    itf_dictionary = dict()
 
     for token_id, frequency in tf1.items():
         global_tf_freq = None
@@ -38,18 +38,18 @@ def calculate_idf(data_agent: DataAgent, tf1: dict, tf2: dict):
         else:
             global_tf_freq = data_agent.global_tf[token_id]
         if global_tf_freq < data_agent.epsilon:
-            idf_dictionary[token_id] = 0.0
+            itf_dictionary[token_id] = 0.0
         else:
-            idf_dictionary[token_id] = 1.0 + log(terms_global_frequency / global_tf_freq)
+            itf_dictionary[token_id] = 1.0 + log(terms_global_frequency / global_tf_freq)
 
     for token_id, frequency in tf2.items():
-        if token_id not in idf_dictionary:
+        if token_id not in itf_dictionary:
             if data_agent.global_tf[token_id] < data_agent.epsilon:
-                idf_dictionary[token_id] = 0.0
+                itf_dictionary[token_id] = 0.0
             else:
-                idf_dictionary[token_id] = 1.0 + log(terms_global_frequency / data_agent.global_tf[token_id])
+                itf_dictionary[token_id] = 1.0 + log(terms_global_frequency / data_agent.global_tf[token_id])
 
-    return idf_dictionary
+    return itf_dictionary
 
 
 def get_seconds(time: str):
