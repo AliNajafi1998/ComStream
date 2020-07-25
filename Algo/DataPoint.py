@@ -2,7 +2,7 @@ class DataPoint:
     dp_id = 0
 
     def __init__(self,
-                 tf:dict,
+                 freq:dict,
                  time_stamp,
                  user_id,
                  status_id,
@@ -12,7 +12,7 @@ class DataPoint:
                  retweet_count):
         self.dp_id = DataPoint.dp_id
         DataPoint.dp_id += 1
-        self.tf = tf
+        self.freq = freq
         self.created_at = created_at
         self.time_stamp = time_stamp
         self.user_id = user_id

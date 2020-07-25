@@ -58,7 +58,7 @@ class KingAgent:
             min_distance = float('infinity')
             similar_agent_id = -1
             for agent_id, agent in self.agents.items():
-                distance = agent.get_distance(self.data_agent, self.data_agent.data_points[outlier_id].tf)
+                distance = agent.get_distance(self.data_agent, self.data_agent.data_points[outlier_id].freq)
                 if distance <= min_distance:
                     min_distance = distance
                     similar_agent_id = agent_id
@@ -96,7 +96,7 @@ class KingAgent:
         min_distance = float('infinity')
         similar_agent_id = -1
         for agent_id, agent in self.agents.items():
-            distance = agent.get_distance(self.data_agent, self.data_agent.data_points[dp.dp_id].tf)
+            distance = agent.get_distance(self.data_agent, self.data_agent.data_points[dp.dp_id].freq)
             if distance <= min_distance:
                 min_distance = distance
                 similar_agent_id = agent_id

@@ -16,7 +16,7 @@ class DataAgent:
         self.epsilon = epsilon
         self.raw_data = None
         self.token_to_id = {}
-        self.global_tf = {}
+        self.global_freq = {}
         self.count = count
         self.data_points = {}
 
@@ -31,7 +31,7 @@ class DataAgent:
         tweet = dp['text'].values[0]
 
         # Extracting Data
-        tf_dict = self.get_tf_dict(tweet)
+        freq_dict = self.get_tf_dict(tweet)
 
         time_stamp = datetime.now()
         user_id = dp['user_id'].values[0]
@@ -45,7 +45,7 @@ class DataAgent:
         DataAgent.date = pd.to_datetime(created_at)
 
         return DataPoint(
-            tf=tf_dict, time_stamp=time_stamp,
+            freq=freq_dict, time_stamp=time_stamp,
             user_id=user_id, status_id=status_id,
             created_at=created_at, is_verified=is_verified,
             favourites_count=favourites_count, retweet_count=retweet_count)

@@ -12,7 +12,7 @@ class Agent:
         self.agent_id = Agent.agent_id
         self.outlier_threshold = king_agent.outlier_threshold
         Agent.agent_id += 1
-        self.agent_global_tf = {}
+        self.agent_global_f = {}
         self.weight = 1
         self.dp_ids = []
         self.king_agent = king_agent
@@ -25,22 +25,22 @@ class Agent:
         :return: None
         """
         self.weight += 1
-        for token_id, frequency in dp.tf.items():
-            if token_id in self.agent_global_tf:
-                self.agent_global_tf[token_id] += frequency
+        for token_id, frequency in dp.freq.items():
+            if token_id in self.agent_global_f:
+                self.agent_global_f[token_id] += frequency
                 self.update_global_tf(frequency, token_id)
             else:
-                self.agent_global_tf[token_id] = frequency
+                self.agent_global_f[token_id] = frequency
                 self.update_global_tf(frequency, token_id)
 
         self.dp_ids.append(dp.dp_id)
 
     def update_global_tf(self, frequency, token_id):
-        if token_id in self.king_agent.data_agent.global_tf:
-            self.king_agent.data_agent.global_tf[token_id] += frequency
+        if token_id in self.king_agent.data_agent.global_freq:
+            self.king_agent.data_agent.global_freq[token_id] += frequency
             self.king_agent.data_agent.terms_global_frequency += frequency
         else:
-            self.king_agent.data_agent.global_tf[token_id] = frequency
+            self.king_agent.data_agent.global_freq[token_id] = frequency
             self.king_agent.data_agent.terms_global_frequency += frequency
 
     def remove_data_point(self, dp_id: int) -> None:
@@ -55,8 +55,8 @@ class Agent:
             if self.weight <= 0:
                 self.weight = 0
             # print(self.king_agent.data_agent.data_points.keys())
-            for token_id, frequency in self.king_agent.data_agent.data_points[dp_id].tf.items():
-                self.king_agent.data_agent.global_tf[token_id] -= frequency
+            for token_id, frequency in self.king_agent.data_agent.data_points[dp_id].freq.items():
+                self.king_agent.data_agent.global_freq[token_id] -= frequency
                 self.king_agent.data_agent.terms_global_frequency -= frequency
             del self.king_agent.data_agent.data_points[dp_id]
         except ValueError:
@@ -81,14 +81,14 @@ class Agent:
         outliers_id = []
         for dp_id in self.dp_ids:
             dp = self.king_agent.data_agent.data_points[dp_id]
-            distance = self.get_distance(self.king_agent.data_agent, dp.tf)
+            distance = self.get_distance(self.king_agent.data_agent, dp.freq)
             if distance > self.outlier_threshold:
                 self.dp_ids.remove(dp_id)
                 outliers_id.append(dp_id)
         return outliers_id
 
-    def get_distance(self, data_agent: DataAgent, tf: dict):
-        return self.generic_distance_function(data_agent, tf, self.agent_global_tf)
+    def get_distance(self, data_agent: DataAgent, f: dict):
+        return self.generic_distance_function(data_agent, f, self.agent_global_f)
 
     def handle_old_dps(self):
         for dp_id in self.dp_ids:
