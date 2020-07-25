@@ -9,26 +9,26 @@ def get_distance_tf_itf_cosine(data_agent: DataAgent, freq1: dict, freq2: dict):
     sum_freq2 = sum(freq2.values())
 
     sum_product_dots = 0.0
-    dp1_tf_idf_length = 0.0
-    dp2_tf_idf_length = 0.0
+    dp1_tf_itf_length = 0.0
+    dp2_tf_itf_length = 0.0
     for term_in_dp1 in freq1:
         if term_in_dp1 in idf:
             if term_in_dp1 in freq2:
                 sum_product_dots += (freq1[term_in_dp1] / sum_freq1 * idf[term_in_dp1]) * (
                         freq2[term_in_dp1] / sum_freq2 * idf[term_in_dp1])
-            dp1_tf_idf_length += pow(freq1[term_in_dp1] / sum_freq1 * idf[term_in_dp1], 2)
+            dp1_tf_itf_length += pow(freq1[term_in_dp1] / sum_freq1 * idf[term_in_dp1], 2)
 
-    dp1_tf_idf_length = sqrt(dp1_tf_idf_length)
+    dp1_tf_itf_length = sqrt(dp1_tf_itf_length)
 
     for term_in_dp2 in freq2:
         if term_in_dp2 in idf:
-            dp2_tf_idf_length += pow(freq2[term_in_dp2] / sum_freq2 * idf[term_in_dp2], 2)
-    dp2_tf_idf_length = sqrt(dp2_tf_idf_length)
+            dp2_tf_itf_length += pow(freq2[term_in_dp2] / sum_freq2 * idf[term_in_dp2], 2)
+    dp2_tf_itf_length = sqrt(dp2_tf_itf_length)
 
-    if dp1_tf_idf_length < data_agent.epsilon or dp2_tf_idf_length < data_agent.epsilon:
+    if dp1_tf_itf_length < data_agent.epsilon or dp2_tf_itf_length < data_agent.epsilon:
         return 1.0
     else:
-        return 1.0 - (sum_product_dots / (dp1_tf_idf_length * dp2_tf_idf_length))
+        return 1.0 - (sum_product_dots / (dp1_tf_itf_length * dp2_tf_itf_length))
 
 
 def calculate_itf(data_agent: DataAgent, freq1: dict, freq2: dict):
