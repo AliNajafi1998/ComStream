@@ -1,6 +1,6 @@
 from DataAgent import DataAgent
 from Agent import Agent
-from Utils import get_distance_tf_itf_cosine, get_seconds
+from Utils import get_distance_tf_idf_cosine, get_seconds
 import random
 import re
 import time
@@ -19,7 +19,7 @@ class KingAgent:
                  top_n: int,
                  dp_count: int,
                  fading_rate,
-                 generic_distance=get_distance_tf_itf_cosine):
+                 generic_distance=get_distance_tf_idf_cosine):
 
         pattern = re.compile(r'^[0-9]+:[0-9]{2}:[0-9]{2}$')
         are_invalid_steps = len(pattern.findall(communication_step)) != 1 or len(pattern.findall(clean_up_step)) != 1
@@ -58,7 +58,7 @@ class KingAgent:
             min_distance = float('infinity')
             similar_agent_id = -1
             for agent_id, agent in self.agents.items():
-                distance = agent.get_distance(self.data_agent, self.data_agent.data_points[outlier_id].freq)
+                distance = agent.get_distance(self, self.data_agent.data_points[outlier_id].freq)
                 if distance <= min_distance:
                     min_distance = distance
                     similar_agent_id = agent_id
@@ -96,7 +96,7 @@ class KingAgent:
         min_distance = float('infinity')
         similar_agent_id = -1
         for agent_id, agent in self.agents.items():
-            distance = agent.get_distance(self.data_agent, self.data_agent.data_points[dp.dp_id].freq)
+            distance = agent.get_distance(self, self.data_agent.data_points[dp.dp_id].freq)
             if distance <= min_distance:
                 min_distance = distance
                 similar_agent_id = agent_id

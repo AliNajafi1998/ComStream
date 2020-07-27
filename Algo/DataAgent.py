@@ -31,7 +31,7 @@ class DataAgent:
         tweet = dp['text'].values[0]
 
         # Extracting Data
-        freq_dict = self.get_tf_dict(tweet)
+        freq_dict = self.get_freq_dict(tweet)
 
         time_stamp = datetime.now()
         user_id = dp['user_id'].values[0]
@@ -50,17 +50,17 @@ class DataAgent:
             created_at=created_at, is_verified=is_verified,
             favourites_count=favourites_count, retweet_count=retweet_count)
 
-    def get_tf_dict(self, tweet: str) -> dict:
+    def get_freq_dict(self, tweet: str) -> dict:
         tweet_tokens = tweet.split()
 
-        tf_dict = defaultdict(lambda: 0)
+        freq_dict = defaultdict(lambda: 0)
         for token in tweet_tokens:
             if token in self.token_to_id:
-                tf_dict[self.token_to_id[token]] += 1
+                freq_dict[self.token_to_id[token]] += 1
             else:
                 self.token_to_id[token] = DataAgent.token_id
                 DataAgent.token_id += 1
-        return tf_dict
+        return freq_dict
 
     def get_next_dp(self):
         if DataAgent.current_dp_index >= self.count:

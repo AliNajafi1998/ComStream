@@ -1,7 +1,6 @@
 from typing import Callable
 
 from DataPoint import DataPoint
-from DataAgent import DataAgent
 from Utils import get_seconds
 
 
@@ -81,14 +80,14 @@ class Agent:
         outliers_id = []
         for dp_id in self.dp_ids:
             dp = self.king_agent.data_agent.data_points[dp_id]
-            distance = self.get_distance(self.king_agent.data_agent, dp.freq)
+            distance = self.get_distance(self.king_agent, dp.freq)
             if distance > self.outlier_threshold:
                 self.dp_ids.remove(dp_id)
                 outliers_id.append(dp_id)
         return outliers_id
 
-    def get_distance(self, data_agent: DataAgent, f: dict):
-        return self.generic_distance_function(data_agent, f, self.agent_global_f)
+    def get_distance(self, king_agent, f: dict):
+        return self.generic_distance_function(king_agent, f, self.agent_global_f)
 
     def handle_old_dps(self):
         for dp_id in self.dp_ids:
