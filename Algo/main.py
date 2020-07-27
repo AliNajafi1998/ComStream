@@ -16,3 +16,5 @@ king.train()
 
 print(len(king.agents))
 print(list(king.agents.values())[1].weight)
+
+king.save_model()

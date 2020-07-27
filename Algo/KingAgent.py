@@ -4,6 +4,7 @@ from Utils import get_distance_tf_idf_cosine, get_seconds
 import random
 import re
 import time
+import pickle
 
 
 class KingAgent:
@@ -132,3 +133,12 @@ class KingAgent:
                 self.handle_outliers()
                 self.fade_agents()
             KingAgent.prev_residual = residual
+
+    def save_model(self):
+        with open('model.pkl', 'wb') as file:
+            pickle.dump(self, file)
+
+    @classmethod
+    def load_model(cls, file_dir):
+        with open(file_dir, 'rb') as file:
+            return pickle.load(file)
