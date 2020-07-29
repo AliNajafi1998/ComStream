@@ -118,16 +118,11 @@ class KingAgent:
             if distance <= min_distance:
                 min_distance = distance
                 similar_agent_id = agent_id
-        print(f"Stream : {min_distance}")
-
         if min_distance > self.radius:
             new_agent_id = self.create_agent()
             self.agents[new_agent_id].add_data_point(self.data_agent.data_points[dp.dp_id])
         else:
             self.agents[similar_agent_id].add_data_point(self.data_agent.data_points[dp.dp_id])
-        if min_distance <= 0:
-            print(f"DP : {dp.freq.items()}")
-            print(f"Agent : {self.agents[similar_agent_id].agent_global_f.items()}")
 
     def fade_agents(self):
         for agent_id in list(self.agents.keys()):
