@@ -4,3 +4,5 @@ RawData/
 Algo/env/
 Algo/.idea
 __pycache__/
+Algo/output/
+Algo/model/
