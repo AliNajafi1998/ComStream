@@ -1,3 +1,5 @@
+import copy
+
 from DataPoint import DataPoint
 import pandas as pd
 from datetime import datetime
@@ -7,12 +9,11 @@ from os import getcwd, path, chdir
 
 
 class DataAgent:
-    date = pd.to_datetime('2000-05-29T00:00:12Z')
     token_id = 0
     current_dp_index = 0
     terms_global_frequency = 0
 
-    def __init__(self, count: int, epsilon=1e-3):
+    def __init__(self, count: int, epsilon=1e-7):
         self.epsilon = epsilon
         self.raw_data = None
         self.token_to_id = {}
@@ -42,21 +43,28 @@ class DataAgent:
         retweet_count = dp['retweet_count'].values[0]
 
         # Updating Current Date
-        DataAgent.date = pd.to_datetime(created_at)
+        from KingAgent import KingAgent
+        KingAgent.prev_data = copy.deepcopy(KingAgent.date)
+        KingAgent.date = pd.to_datetime(created_at)
 
         return DataPoint(
             freq=freq_dict, time_stamp=time_stamp,
             user_id=user_id, status_id=status_id,
             created_at=created_at, is_verified=is_verified,
-            favourites_count=favourites_count, retweet_count=retweet_count)
+            favourites_count=favourites_count, retweet_count=retweet_count,
+            index_in_df=DataAgent.current_dp_index - 1
+        )
 
     def get_freq_dict(self, tweet: str) -> dict:
         tweet_tokens = tweet.split()
 
-        freq_dict = defaultdict(lambda: 0)
+        freq_dict = {}
         for token in tweet_tokens:
             if token in self.token_to_id:
-                freq_dict[self.token_to_id[token]] += 1
+                if self.token_to_id[token] in freq_dict:
+                    freq_dict[self.token_to_id[token]] += 1
+                else:
+                    freq_dict[self.token_to_id[token]] = 1
             else:
                 self.token_to_id[token] = DataAgent.token_id
                 DataAgent.token_id += 1

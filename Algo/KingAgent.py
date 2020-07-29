@@ -1,3 +1,5 @@
+import copy
+
 from DataAgent import DataAgent
 from Agent import Agent
 from Utils import get_distance_tf_idf_cosine, get_seconds
@@ -5,10 +7,14 @@ import random
 import re
 import time
 import pickle
+import pandas as pd
+import os
 
 
 class KingAgent:
     prev_residual = 0
+    date = pd.to_datetime('2000-05-29T00:00:12Z')
+    prev_data = None
 
     def __init__(self,
                  max_topic_count: int,
@@ -39,6 +45,7 @@ class KingAgent:
         self.clean_up_deltatime = clean_up_step
         self.data_agent = DataAgent(count=dp_count)
         self.generic_distance_function = generic_distance
+        self.dp_id_to_agent_id = dict()
 
     def create_agent(self) -> int:
         agent = Agent(self, generic_distance_function=self.generic_distance_function)
@@ -52,8 +59,11 @@ class KingAgent:
 
     def handle_outliers(self) -> None:
         outliers_id = []
-        for agent_id, agent in self.agents.items():
-            outliers_id.extend(agent.get_outliers())
+        for agent_id in copy.deepcopy(self.agents):
+            outliers_id.extend(self.agents[agent_id].get_outliers())
+            if len(self.agents[agent_id].dp_ids) < 1:
+                print('HI')
+                self.remove_agent(agent_id)
         outliers_to_join = []
         for outlier_id in outliers_id:
             min_distance = float('infinity')
@@ -84,6 +94,13 @@ class KingAgent:
 
         agents_dict = {id_: self.alpha for id_ in self.agents.keys()}
         for i in range(self.max_topic_count * self.alpha):
+            # if KingAgent.prev_data != KingAgent.date:
+            #     for dp_id, agent_id in self.agents.items():
+            #         if os.path.isfile(os.path.join(os.getcwd(), 'dp_tracking.csv')):
+            #             df = pd.read_csv(os.path.join(os.getcwd(), 'dp_tracking.csv'))
+            #         else:
+            #             df = pd.DataFrame(columns=['dp_id'])
+
             random_agent_id = random.sample(list(agents_dict), k=1)[0]
             dp = self.data_agent.get_next_dp()
             self.agents[random_agent_id].add_data_point(dp)
@@ -101,11 +118,16 @@ class KingAgent:
             if distance <= min_distance:
                 min_distance = distance
                 similar_agent_id = agent_id
+        print(f"Stream : {min_distance}")
+
         if min_distance > self.radius:
             new_agent_id = self.create_agent()
             self.agents[new_agent_id].add_data_point(self.data_agent.data_points[dp.dp_id])
         else:
             self.agents[similar_agent_id].add_data_point(self.data_agent.data_points[dp.dp_id])
+        if min_distance <= 0:
+            print(f"DP : {dp.freq.items()}")
+            print(f"Agent : {self.agents[similar_agent_id].agent_global_f.items()}")
 
     def fade_agents(self):
         for agent_id in list(self.agents.keys()):
@@ -126,7 +148,7 @@ class KingAgent:
             print(f'number of agents : {len(self.agents)}')
             self.stream()
 
-            residual = time.mktime(DataAgent.date.timetuple()) % get_seconds(self.communication_step)
+            residual = time.mktime(KingAgent.date.timetuple()) % get_seconds(self.communication_step)
             if residual < KingAgent.prev_residual:
                 KingAgent.prev_residual = 0
                 self.handle_old_dps()
@@ -134,11 +156,22 @@ class KingAgent:
                 self.fade_agents()
             KingAgent.prev_residual = residual
 
-    def save_model(self):
-        with open('model.pkl', 'wb') as file:
+    def save_model(self, parent_dir):
+        if not os.path.exists(parent_dir):
+            os.makedirs(parent_dir)
+        with open(os.path.join(parent_dir, 'model.pkl'), 'wb') as file:
             pickle.dump(self, file)
 
     @classmethod
     def load_model(cls, file_dir):
         with open(file_dir, 'rb') as file:
             return pickle.load(file)
+
+    def write_output_to_files(self, parent_dir):
+        for agent_id, agent in self.agents.items():
+            if not os.path.exists(parent_dir):
+                os.makedirs(parent_dir)
+            with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w') as file:
+                for dp_id in agent.dp_ids:
+                    dp_df = self.data_agent.raw_data.iloc[[self.data_agent.data_points[dp_id].index_in_df]]
+                    file.write(str(dp_df['text'].values[0]) + '\n')

@@ -33,6 +33,7 @@ class Agent:
                 self.update_global_tf(frequency, token_id)
 
         self.dp_ids.append(dp.dp_id)
+        self.king_agent.dp_id_to_agent_id[dp.dp_id] = self.agent_id
 
     def update_global_tf(self, frequency, token_id):
         if token_id in self.king_agent.data_agent.global_freq:
@@ -53,11 +54,12 @@ class Agent:
             self.weight -= 1
             if self.weight <= 0:
                 self.weight = 0
-            # print(self.king_agent.data_agent.data_points.keys())
             for token_id, frequency in self.king_agent.data_agent.data_points[dp_id].freq.items():
                 self.king_agent.data_agent.global_freq[token_id] -= frequency
                 self.king_agent.data_agent.terms_global_frequency -= frequency
             del self.king_agent.data_agent.data_points[dp_id]
+            del self.king_agent.dp_id_to_agent_id[dp_id]
+
         except ValueError:
             print(f'There is no such data point in Agent : {dp_id}')
 
@@ -92,6 +94,6 @@ class Agent:
     def handle_old_dps(self):
         for dp_id in self.dp_ids:
             dp = self.king_agent.data_agent.data_points[dp_id]
-            if abs((dp.created_at - self.king_agent.data_agent.date).total_seconds()) > get_seconds(
+            if abs((dp.created_at - self.king_agent.date).total_seconds()) > get_seconds(
                     self.king_agent.clean_up_deltatime):
                 self.remove_data_point(dp_id)
