@@ -21,3 +21,4 @@ if __name__ == '__main__':
 
     king.save_model(os.path.join(os.getcwd(), 'model'))
     king.write_output_to_files(os.path.join(os.getcwd(), 'output'))
+    print(king.get_topics_of_agents(5))

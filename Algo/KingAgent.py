@@ -9,6 +9,7 @@ import time
 import pickle
 import pandas as pd
 import os
+from math import log
 
 
 class KingAgent:
@@ -62,7 +63,6 @@ class KingAgent:
         for agent_id in copy.deepcopy(self.agents):
             outliers_id.extend(self.agents[agent_id].get_outliers())
             if len(self.agents[agent_id].dp_ids) < 1:
-                print('HI')
                 self.remove_agent(agent_id)
         outliers_to_join = []
         for outlier_id in outliers_id:
@@ -170,3 +170,18 @@ class KingAgent:
                 for dp_id in agent.dp_ids:
                     dp_df = self.data_agent.raw_data.iloc[[self.data_agent.data_points[dp_id].index_in_df]]
                     file.write(str(dp_df['text'].values[0]) + '\n')
+
+    def get_topics_of_agents(self, max_topic_n=10):
+        agent_topics = {}
+        for agent_id, agent in self.agents.items():
+            tf_idf = {}
+            for term_id, f in agent.agent_global_f.items():
+                dfi = 0
+                for agent_id_2, agent_2 in self.agents.items():
+                    if term_id in agent_2.agent_global_f:
+                        dfi += 1
+
+                tf_idf[term_id] = 1 + log((len(self.agents) + 1) / dfi) * (f / sum(agent.agent_global_f.values()))
+
+            agent_topics[agent_id] = sorted(tf_idf.items(), key=lambda x: -x[1])[:max_topic_n]
+        return agent_topics
