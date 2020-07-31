@@ -169,7 +169,7 @@ class KingAgent:
             with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w') as file:
                 for dp_id in agent.dp_ids:
                     dp_df = self.data_agent.raw_data.iloc[[self.data_agent.data_points[dp_id].index_in_df]]
-                    file.write(str(dp_df['text'].values[0]) + '\n')
+                    file.write(str(dp_df['TEXT'].values[0]) + '\n')
 
     def get_topics_of_agents(self, max_topic_n=10):
         agent_topics = {}

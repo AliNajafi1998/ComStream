@@ -21,25 +21,21 @@ class DataAgent:
         self.data_points = {}
 
         chdir('..')
-        self.load_data(path.join(getcwd(), 'Data/data_cleaned1.pkl'), count=count)
+        self.load_data(path.join(getcwd(), 'Data/reuters_cleaned.pkl'), count=count)
         chdir('./Algo')
 
     def load_data(self, file_path: str, count: int) -> None:
         self.raw_data = pd.read_pickle(file_path).reset_index().head(count)
 
     def get_dp(self, dp: pd.DataFrame) -> DataPoint:
-        tweet = dp['text'].values[0]
+        tweet = dp['TEXT'].values[0]
 
         # Extracting Data
         freq_dict = self.get_freq_dict(tweet)
 
         time_stamp = datetime.now()
-        user_id = dp['user_id'].values[0]
-        status_id = dp['status_id'].values[0]
-        created_at = dp['created_at'].values[0]
-        is_verified = dp['verified'].values[0]
-        favourites_count = dp['favourites_count'].values[0]
-        retweet_count = dp['retweet_count'].values[0]
+        topics = dp['TOPICS']
+        created_at = pd.to_datetime(dp['CREATED_AT'].values[0])
 
         # Updating Current Date
         from KingAgent import KingAgent
@@ -47,10 +43,10 @@ class DataAgent:
         KingAgent.date = pd.to_datetime(created_at)
 
         return DataPoint(
-            freq=freq_dict, time_stamp=time_stamp,
-            user_id=user_id, status_id=status_id,
-            created_at=created_at, is_verified=is_verified,
-            favourites_count=favourites_count, retweet_count=retweet_count,
+            freq=freq_dict,
+            time_stamp=time_stamp,
+            topics=topics,
+            created_at=created_at,
             index_in_df=DataAgent.current_dp_index - 1
         )
 
