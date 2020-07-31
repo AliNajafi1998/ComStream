@@ -3,7 +3,6 @@ import copy
 from DataPoint import DataPoint
 import pandas as pd
 from datetime import datetime
-from collections import defaultdict
 
 from os import getcwd, path, chdir
 
