@@ -14,7 +14,7 @@ from math import log
 
 class KingAgent:
     prev_residual = 0
-    date = pd.to_datetime('2000-05-29T00:00:12Z')
+    date = pd.to_datetime('2000-01-29T00:00:00Z')
     prev_data = None
 
     def __init__(self,
