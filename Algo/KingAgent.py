@@ -17,7 +17,7 @@ class KingAgent:
     prev_residual = 0
     date = pd.to_datetime('2000-01-29T00:00:00Z')
     prev_data = None
-
+    dp_now = 0
     def __init__(self,
                  max_topic_count: int,
                  communication_step: str,
@@ -48,6 +48,7 @@ class KingAgent:
         self.data_agent = DataAgent(count=dp_count)
         self.generic_distance_function = generic_distance
         self.dp_id_to_agent_id = dict()
+        self.global_idf_count = {}
 
     def create_agent(self) -> int:
         agent = Agent(self, generic_distance_function=self.generic_distance_function)
@@ -139,9 +140,11 @@ class KingAgent:
     def train(self):
         self.warm_up()
         self.handle_outliers()
-
+        KingAgent.dp_now = self.max_topic_count * self.alpha
         while self.data_agent.has_next_dp():
-            print(f'number of agents : {len(self.agents)}')
+            if KingAgent.dp_now % 100 == 0:
+                print(f'data point count = {KingAgent.dp_now} number of agents : {len(self.agents)}')
+            KingAgent.dp_now += 1  # to count on what dp we are at now
             self.stream()
 
             residual = time.mktime(KingAgent.date.timetuple()) % get_seconds(self.communication_step)
