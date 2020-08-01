@@ -57,13 +57,18 @@ class Agent:
             if self.weight <= 0:
                 self.weight = 0
             for token_id, frequency in self.king_agent.data_agent.data_points[dp_id].freq.items():
-                self.king_agent.global_idf_count[token_id] -= 1
-                if self.king_agent.global_idf_count[token_id] == 0:
-                    del self.king_agent.global_idf_count[token_id]
+                self.agent_global_f[token_id] -= frequency
+                if self.agent_global_f[token_id] <= 0:
+                    del self.agent_global_f[token_id]
+                    self.king_agent.global_idf_count[token_id] -= 1
+                    if self.king_agent.global_idf_count[token_id] == 0:
+                        del self.king_agent.global_idf_count[token_id]
                 self.king_agent.data_agent.global_freq[token_id] -= frequency
                 self.king_agent.data_agent.terms_global_frequency -= frequency
+
             del self.king_agent.data_agent.data_points[dp_id]
             del self.king_agent.dp_id_to_agent_id[dp_id]
+
 
         except ValueError:
             print(f'There is no such data point in Agent : {dp_id}')
