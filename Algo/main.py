@@ -4,7 +4,7 @@ import os
 
 if __name__ == '__main__':
     king = KingAgent(max_topic_count=20,
-                     communication_step="00:01:00",
+                     communication_step="00:00:10",
                      clean_up_step="00:20:10",
                      radius=0.7,
                      alpha=5,

@@ -83,7 +83,7 @@ class Agent:
         else:
             self.weight = self.weight * (1 - fade_rate)
 
-    def get_outliers(self) -> list:
+    def get_outliers(self, out) -> None:
         """
         Getting outliers of agent
         :return: list of ids of outliers
@@ -95,7 +95,7 @@ class Agent:
             if distance > self.outlier_threshold:
                 self.dp_ids.remove(dp_id)
                 outliers_id.append(dp_id)
-        return outliers_id
+        out.extend(outliers_id)
 
     def get_distance(self, king_agent, f: dict):
         return self.generic_distance_function(king_agent, f, self.agent_global_f)

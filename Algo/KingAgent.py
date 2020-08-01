@@ -11,6 +11,7 @@ import pandas as pd
 import os
 from math import log
 import heapq
+from threading import Thread
 
 
 class KingAgent:
@@ -18,6 +19,7 @@ class KingAgent:
     date = pd.to_datetime('2000-01-29T00:00:00Z')
     prev_data = None
     dp_now = 0
+
     def __init__(self,
                  max_topic_count: int,
                  communication_step: str,
@@ -62,8 +64,15 @@ class KingAgent:
 
     def handle_outliers(self) -> None:
         outliers_id = []
+        my_threads = []
+        for agent_id in self.agents:
+            t = Thread(target=self.agents[agent_id].get_outliers, args=[outliers_id])
+            my_threads.append(t)
+            t.daemon = True
+            t.start()
+        for t in my_threads:
+            t.join()
         for agent_id in copy.deepcopy(self.agents):
-            outliers_id.extend(self.agents[agent_id].get_outliers())
             if len(self.agents[agent_id].dp_ids) < 1:
                 self.remove_agent(agent_id)
         outliers_to_join = []
