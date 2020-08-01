@@ -69,7 +69,6 @@ class Agent:
             del self.king_agent.data_agent.data_points[dp_id]
             del self.king_agent.dp_id_to_agent_id[dp_id]
 
-
         except ValueError:
             print(f'There is no such data point in Agent : {dp_id}')
 
