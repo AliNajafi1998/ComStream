@@ -163,10 +163,19 @@ class KingAgent:
         with open(file_dir, 'rb') as file:
             return pickle.load(file)
 
+    def write_topics_to_files(self, parent_dir, max_topic_n=10):
+        agent_topics = self.get_topics_of_agents(max_topic_n)
+        if not os.path.exists(parent_dir):
+            os.makedirs(parent_dir)
+        for agent_id, topics in agent_topics.items():
+            with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w') as file:
+                for item in topics:
+                    file.write(f'{self.data_agent.id_to_token[item[0]]} : {str(item[1])}\n')
+
     def write_output_to_files(self, parent_dir):
+        if not os.path.exists(parent_dir):
+            os.makedirs(parent_dir)
         for agent_id, agent in self.agents.items():
-            if not os.path.exists(parent_dir):
-                os.makedirs(parent_dir)
             with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w') as file:
                 for dp_id in agent.dp_ids:
                     dp_df = self.data_agent.raw_data.iloc[[self.data_agent.data_points[dp_id].index_in_df]]
@@ -184,5 +193,5 @@ class KingAgent:
 
                 tf_idf[term_id] = 1 + log((len(self.agents) + 1) / dfi) * (f / sum(agent.agent_global_f.values()))
 
-            agent_topics[agent_id] = heapq.nlargest(max_topic_n, tf_idf.items(), key=lambda x: -x[1])
+            agent_topics[agent_id] = heapq.nlargest(max_topic_n, tf_idf.items(), key=lambda x: x[1])
         return agent_topics
