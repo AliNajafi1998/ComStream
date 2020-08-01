@@ -10,6 +10,7 @@ import pickle
 import pandas as pd
 import os
 from math import log
+import heapq
 
 
 class KingAgent:
@@ -183,5 +184,5 @@ class KingAgent:
 
                 tf_idf[term_id] = 1 + log((len(self.agents) + 1) / dfi) * (f / sum(agent.agent_global_f.values()))
 
-            agent_topics[agent_id] = sorted(tf_idf.items(), key=lambda x: -x[1])[:max_topic_n]
+            agent_topics[agent_id] = heapq.nlargest(max_topic_n, tf_idf.items(), key=lambda x: -x[1])
         return agent_topics
