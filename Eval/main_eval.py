@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from pathlib import Path
-from ACC import acc
+from ACC import acc, nmi, ari
 import numpy as np
 from collections import Counter
 
@@ -45,4 +45,6 @@ print(len(Counter(y_pred).keys()))
 print(len(Counter(y_true).keys()))
 # print(acc(np.array(y_true), np.array(y_pred)))
 print(acc(np.array(y_true), np.array(y_pred)))
+print(nmi(np.array(y_true), np.array(y_pred)))
+print(ari(np.array(y_true), np.array(y_pred)))
 
