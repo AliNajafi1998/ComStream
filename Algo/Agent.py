@@ -103,5 +103,5 @@ class Agent:
         for dp_id in self.dp_ids:
             dp = self.king_agent.data_agent.data_points[dp_id]
             if abs((dp.created_at - self.king_agent.date).total_seconds()) > get_seconds(
-                    self.king_agent.clean_up_deltatime):
+                    self.king_agent.clean_up_delta_time):
                 self.remove_data_point(dp_id)

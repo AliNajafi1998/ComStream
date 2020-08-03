@@ -1,7 +1,5 @@
 import copy
 
-from TwitterDataAgent import TwitterDataAgent
-from ReutersDataAgent import ReutersDataAgent
 from Agent import Agent
 from Utils import get_distance_tf_idf_cosine, get_seconds
 import random
@@ -13,6 +11,7 @@ import os
 from math import log
 import heapq
 from threading import Thread
+from DataAgent import DataAgent
 
 
 class KingAgent:
@@ -31,6 +30,8 @@ class KingAgent:
                  top_n: int,
                  dp_count: int,
                  fading_rate,
+                 data_file_path: str,
+                 is_twitter=False,
                  generic_distance=get_distance_tf_idf_cosine):
 
         pattern = re.compile(r'^[0-9]+:[0-9]{2}:[0-9]{2}$')
@@ -47,9 +48,8 @@ class KingAgent:
         self.max_topic_count = max_topic_count
         self.outlier_threshold = outlier_threshold
         self.top_n = top_n
-        self.clean_up_deltatime = clean_up_step
-        # self.data_agent = TwitterDataAgent(count=dp_count)
-        self.data_agent = ReutersDataAgent(count=dp_count)
+        self.clean_up_delta_time = clean_up_step
+        self.data_agent = DataAgent(data_file_path=data_file_path, count=dp_count, is_twitter=is_twitter)
         self.generic_distance_function = generic_distance
         self.dp_id_to_agent_id = dict()
         self.global_idf_count = {}
@@ -107,13 +107,6 @@ class KingAgent:
 
         agents_dict = {id_: self.alpha for id_ in self.agents.keys()}
         for i in range(self.max_topic_count * self.alpha):
-            # if KingAgent.prev_data != KingAgent.date:
-            #     for dp_id, agent_id in self.agents.items():
-            #         if os.path.isfile(os.path.join(os.getcwd(), 'dp_tracking.csv')):
-            #             df = pd.read_csv(os.path.join(os.getcwd(), 'dp_tracking.csv'))
-            #         else:
-            #             df = pd.DataFrame(columns=['dp_id'])
-
             random_agent_id = random.sample(list(agents_dict), k=1)[0]
             dp = self.data_agent.get_next_dp()
             self.agents[random_agent_id].add_data_point(dp)
