@@ -93,13 +93,15 @@ class KingAgent:
         outliers_to_join = sorted(outliers_to_join, key=lambda tup: tup[1])
         if self.top_n < len(outliers_to_join):
             outliers_to_join = outliers_to_join[:self.top_n]
+            for dp_id, distance, agent_id in outliers_to_join[self.top_n:]:
+                del self.data_agent.data_points[dp_id]
 
         for dp_id, distance, agent_id in outliers_to_join:
             if distance > self.radius:
                 new_agent_id = self.create_agent()
-                self.agents[new_agent_id].add_data_point(self.data_agent.data_points[dp_id])
+                self.agents[new_agent_id].add_data_point(self.data_agent.data_points[dp_id], outlier=True)
             else:
-                self.agents[agent_id].add_data_point(self.data_agent.data_points[dp_id])
+                self.agents[agent_id].add_data_point(self.data_agent.data_points[dp_id], outlier=True)
 
     def warm_up(self):
         for i in range(self.max_topic_count):

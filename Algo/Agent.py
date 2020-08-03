@@ -16,7 +16,7 @@ class Agent:
         self.king_agent = king_agent
         self.generic_distance_function = generic_distance_function
 
-    def add_data_point(self, dp) -> None:
+    def add_data_point(self, dp, outlier=False) -> None:
         """
         Adding data point to the agent
         :param dp: data point We want to add to the Agent
@@ -32,7 +32,8 @@ class Agent:
                 self.agent_global_f[token_id] = frequency
                 self.update_global_tf(frequency, token_id)
 
-        self.dp_ids.append(dp.dp_id)
+        if not outlier:
+            self.dp_ids.append(dp.dp_id)
         self.king_agent.dp_id_to_agent_id[dp.dp_id] = self.agent_id
 
     def update_global_tf(self, frequency, token_id):
@@ -43,7 +44,7 @@ class Agent:
             self.king_agent.data_agent.global_freq[token_id] = frequency
             self.king_agent.data_agent.terms_global_frequency += frequency
 
-    def remove_data_point(self, dp_id: int) -> None:
+    def remove_data_point(self, dp_id: int, outlier=False) -> None:
         """
         Removing data point from agent
         :param dp_id: Data Point id
@@ -65,7 +66,8 @@ class Agent:
                 self.king_agent.data_agent.global_freq[token_id] -= frequency
                 self.king_agent.data_agent.terms_global_frequency -= frequency
 
-            del self.king_agent.data_agent.data_points[dp_id]
+            if not outlier:
+                del self.king_agent.data_agent.data_points[dp_id]
             del self.king_agent.dp_id_to_agent_id[dp_id]
 
         except ValueError:
@@ -92,7 +94,7 @@ class Agent:
             dp = self.king_agent.data_agent.data_points[dp_id]
             distance = self.get_distance(self.king_agent, dp.freq)
             if distance > self.outlier_threshold:
-                self.dp_ids.remove(dp_id)
+                self.remove_data_point(dp_id, outlier=True)
                 outliers_id.append(dp_id)
         out.extend(outliers_id)
 
