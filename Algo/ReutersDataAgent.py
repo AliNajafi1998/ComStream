@@ -43,7 +43,7 @@ class ReutersDataAgent:
         KingAgent.prev_data = copy.deepcopy(KingAgent.date)
         KingAgent.date = pd.to_datetime(created_at)
 
-        return DataPoint(
+        return ReutersDataPoint(
             freq=freq_dict,
             time_stamp=time_stamp,
             topics=topics,
