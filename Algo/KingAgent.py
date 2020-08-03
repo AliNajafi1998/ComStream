@@ -146,8 +146,8 @@ class KingAgent:
         self.handle_outliers()
         KingAgent.dp_now = self.max_topic_count * self.alpha
         while self.data_agent.has_next_dp():
-            if KingAgent.dp_now % 100 == 0:
-                print(f'data point count = {KingAgent.dp_now} number of agents : {len(self.agents)}')
+            if (KingAgent.dp_now + 1) % 100 == 0:
+                print(f'data point count = {KingAgent.dp_now + 1} number of agents : {len(self.agents)}')
             KingAgent.dp_now += 1  # to count on what dp we are at now
             self.stream()
 
@@ -186,7 +186,7 @@ class KingAgent:
             with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w') as file:
                 for dp_id in agent.dp_ids:
                     dp_df = self.data_agent.raw_data.iloc[[self.data_agent.data_points[dp_id].index_in_df]]
-                    file.write(str(dp_df['TEXT'].values[0]) + '\n')
+                    file.write(str(dp_df['text'].values[0]) + '\n')
 
     def get_topics_of_agents(self, max_topic_n=10):
         agent_topics = {}

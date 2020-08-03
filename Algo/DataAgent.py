@@ -43,7 +43,7 @@ class DataAgent:
         time_stamp = datetime.now()
         user_id = dp['user_id'].values[0]
         status_id = dp['status_id'].values[0]
-        created_at = dp['created_at'].values[0]
+        created_at = pd.to_datetime(dp['created_at'].values[0])
         is_verified = dp['verified'].values[0]
         favourites_count = dp['favourites_count'].values[0]
         retweet_count = dp['retweet_count'].values[0]
@@ -74,7 +74,7 @@ class DataAgent:
         # Updating Current Date
         from KingAgent import KingAgent
         KingAgent.prev_data = copy.deepcopy(KingAgent.date)
-        KingAgent.date = pd.to_datetime(created_at)
+        KingAgent.date = created_at
 
         return ReutersDataPoint(
             freq=freq_dict,
