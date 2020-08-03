@@ -158,6 +158,7 @@ class KingAgent:
                 self.handle_outliers()
                 self.fade_agents()
             KingAgent.prev_residual = residual
+        self.handle_outliers()
 
     def save_model(self, parent_dir):
         if not os.path.exists(parent_dir):
@@ -175,7 +176,7 @@ class KingAgent:
         if not os.path.exists(parent_dir):
             os.makedirs(parent_dir)
         for agent_id, topics in agent_topics.items():
-            with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w') as file:
+            with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w', encoding='utf8') as file:
                 for item in topics:
                     file.write(f'{self.data_agent.id_to_token[item[0]]} : {str(item[1])}\n')
 
@@ -183,7 +184,7 @@ class KingAgent:
         if not os.path.exists(parent_dir):
             os.makedirs(parent_dir)
         for agent_id, agent in self.agents.items():
-            with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w') as file:
+            with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w', encoding='utf8') as file:
                 for dp_id in agent.dp_ids:
                     dp_df = self.data_agent.raw_data.iloc[[self.data_agent.data_points[dp_id].index_in_df]]
                     file.write(str(dp_df['text'].values[0]) + '\n')
