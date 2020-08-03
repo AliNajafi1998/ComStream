@@ -1,6 +1,6 @@
 import copy
 
-from DataAgent import DataAgent
+from ReutersDataAgent import ReutersDataAgent
 from Agent import Agent
 from Utils import get_distance_tf_idf_cosine, get_seconds
 import random
@@ -47,7 +47,7 @@ class KingAgent:
         self.outlier_threshold = outlier_threshold
         self.top_n = top_n
         self.clean_up_deltatime = clean_up_step
-        self.data_agent = DataAgent(count=dp_count)
+        self.data_agent = ReutersDataAgent(count=dp_count)
         self.generic_distance_function = generic_distance
         self.dp_id_to_agent_id = dict()
         self.global_idf_count = {}
