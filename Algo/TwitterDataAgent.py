@@ -7,7 +7,7 @@ from datetime import datetime
 from os import getcwd, path, chdir
 
 
-class DataAgent:
+class TwitterDataAgent:
     token_id = 0
     current_dp_index = 0
     terms_global_frequency = 0
@@ -51,7 +51,7 @@ class DataAgent:
             user_id=user_id, status_id=status_id,
             created_at=created_at, is_verified=is_verified,
             favourites_count=favourites_count, retweet_count=retweet_count,
-            index_in_df=DataAgent.current_dp_index - 1
+            index_in_df=TwitterDataAgent.current_dp_index - 1
         )
 
     def get_freq_dict(self, tweet: str) -> dict:
@@ -65,22 +65,22 @@ class DataAgent:
                 else:
                     freq_dict[self.token_to_id[token]] = 1
             else:
-                self.token_to_id[token] = DataAgent.token_id
-                DataAgent.token_id += 1
+                self.token_to_id[token] = TwitterDataAgent.token_id
+                TwitterDataAgent.token_id += 1
         return freq_dict
 
     def get_next_dp(self):
-        if DataAgent.current_dp_index >= self.count:
+        if TwitterDataAgent.current_dp_index >= self.count:
             print('Finished')
             return None
         else:
-            DataAgent.current_dp_index += 1
-            dp = self.get_dp(self.raw_data.iloc[[DataAgent.current_dp_index - 1]])
+            TwitterDataAgent.current_dp_index += 1
+            dp = self.get_dp(self.raw_data.iloc[[TwitterDataAgent.current_dp_index - 1]])
             self.data_points[dp.dp_id] = dp
             return dp
 
     def has_next_dp(self):
-        if DataAgent.current_dp_index >= self.count:
+        if TwitterDataAgent.current_dp_index >= self.count:
             return False
         else:
             return True
