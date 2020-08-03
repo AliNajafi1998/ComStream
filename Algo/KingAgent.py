@@ -161,6 +161,7 @@ class KingAgent:
                 self.fade_agents()
             KingAgent.prev_residual = residual
         self.handle_outliers()
+        self.handle_old_dps()
 
     def save_model(self, parent_dir):
         if not os.path.exists(parent_dir):
