@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import seaborn as sns
 
+# Params:
+dp_threshold = 80  # the clusters with dp's more than this number are valid, the rest are outliers
+
 path = Path(os.getcwd())
 
 # assign the data dirs
@@ -18,12 +21,10 @@ pred_dir = str(path.parent) + '/Data/output/'
 # read the true and pred data
 word2ind = {}
 ind_n = 0  # keep track of the number of new words in word2ind
-dp_n = 0  # keep track of overall number of dps we have in the file
 # fill the dict word2ind
 for label_dir in os.listdir(pred_dir):
-    f = open(pred_dir + '/' + label_dir, "r")
+    f = open(pred_dir + '/' + label_dir, "r", encoding='utf8')
     for line in f.readlines():
-        dp_n += 1
         for word in line.split():
             if word not in word2ind:
                 word2ind[word] = ind_n
@@ -32,17 +33,25 @@ for label_dir in os.listdir(pred_dir):
 
 # getting the real data to bag of words and labels too
 y_pred = []
-x_pred = np.zeros((dp_n, ind_n))  # will be bag of words
+x_pred = []  # will be bag of words
 dp_ind = 0
 for label_dir in os.listdir(pred_dir):
-    f = open(pred_dir + '/' + label_dir, "r")
+    f = open(pred_dir + '/' + label_dir, "r", encoding='utf8')
+    if len(f.readlines()) < dp_threshold:
+        continue
+    f.close()
+    f = open(pred_dir + '/' + label_dir, "r", encoding='utf8')
     for line in f.readlines():
+        x_pred_one = np.zeros(ind_n)
         for word in line.split():
-            x_pred[dp_ind][word2ind[word]] += 1
+            x_pred_one[word2ind[word]] += 1
         dp_ind += 1
         y_pred.append(int(label_dir[:-4]))
+        x_pred.append(x_pred_one)
     f.close()
+
 y_pred = np.array(y_pred)
+x_pred = np.array(x_pred)
 print(x_pred.shape)
 print(y_pred.shape)
 
@@ -56,10 +65,11 @@ print('Size of the dataframe: {}'.format(df.shape))
 # randomizing the data (this might be needed, don't touch :))
 np.random.seed(42)
 rndperm = np.random.permutation(df.shape[0])
+print(f"number of big clusters: {df['y'].nunique()}")
 
 ### tsne
 tsne = TSNE(n_components=2, verbose=1, perplexity=40, n_iter=300)
-N = 300  # dp_n
+N = len(df['y'])  # number of datapoints to be ploted ('len(df['y'])' means plot all of them)
 df_subset = df.loc[rndperm[:N], :]
 data_subset = df_subset[feat_cols].values
 tsne_results = tsne.fit_transform(data_subset)
@@ -77,7 +87,6 @@ scatter_plot = sns.scatterplot(
     alpha=0.4
 )
 scatter_plot.legend(loc='center left', bbox_to_anchor=(2.0, 2.0))
-
 
 plt.show()
 fig = scatter_plot.get_figure()
