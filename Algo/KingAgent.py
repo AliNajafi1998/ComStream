@@ -39,7 +39,7 @@ class KingAgent:
 
         if are_invalid_steps:
             raise Exception(f'Invalid inputs fot steps')
-
+        self.is_twitter = is_twitter
         self.agents = {}
         self.radius = radius
         self.fading_rate = fading_rate
@@ -190,7 +190,10 @@ class KingAgent:
             with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w', encoding='utf8') as file:
                 for dp_id in agent.dp_ids:
                     dp_df = self.data_agent.raw_data.iloc[[self.data_agent.data_points[dp_id].index_in_df]]
-                    file.write(str(dp_df['text'].values[0]) + '\n')
+                    if self.is_twitter:
+                        file.write(str(dp_df['text'].values[0]) + '\n')
+                    else:
+                        file.write(str(dp_df['TEXT'].values[0]) + '\n')
 
     def get_topics_of_agents(self, max_topic_n=10):
         agent_topics = {}
