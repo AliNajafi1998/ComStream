@@ -1,6 +1,6 @@
 import copy
 
-from TwitterDataPoint import TwitterDataPoint
+from DataPoint import TwitterDataPoint
 import pandas as pd
 from datetime import datetime
 

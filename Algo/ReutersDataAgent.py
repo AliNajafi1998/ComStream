@@ -1,6 +1,6 @@
 import copy
 
-from ReutersDataPoint import ReutersDataPoint
+from DataPoint import ReutersDataPoint
 import pandas as pd
 from datetime import datetime
 
