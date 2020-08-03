@@ -1,4 +1,4 @@
-class DataPoint:
+class TwitterDataPoint:
     dp_id = 0
 
     def __init__(self,
@@ -11,8 +11,8 @@ class DataPoint:
                  favourites_count,
                  retweet_count,
                  index_in_df):
-        self.dp_id = DataPoint.dp_id
-        DataPoint.dp_id += 1
+        self.dp_id = TwitterDataPoint.dp_id
+        TwitterDataPoint.dp_id += 1
         self.freq = freq
         self.created_at = created_at
         self.time_stamp = time_stamp

@@ -1,6 +1,7 @@
 import copy
 
 from TwitterDataAgent import TwitterDataAgent
+from ReutersDataAgent import ReutersDataAgent
 from Agent import Agent
 from Utils import get_distance_tf_idf_cosine, get_seconds
 import random
@@ -10,12 +11,15 @@ import pickle
 import pandas as pd
 import os
 from math import log
+import heapq
+from threading import Thread
 
 
 class KingAgent:
     prev_residual = 0
-    date = pd.to_datetime('2000-05-29T00:00:12Z')
+    date = pd.to_datetime('2000-01-29T00:00:00Z')
     prev_data = None
+    dp_now = 0
 
     def __init__(self,
                  max_topic_count: int,
@@ -44,9 +48,11 @@ class KingAgent:
         self.outlier_threshold = outlier_threshold
         self.top_n = top_n
         self.clean_up_deltatime = clean_up_step
-        self.data_agent = TwitterDataAgent(count=dp_count)
+        # self.data_agent = TwitterDataAgent(count=dp_count)
+        self.data_agent = ReutersDataAgent(count=dp_count)
         self.generic_distance_function = generic_distance
         self.dp_id_to_agent_id = dict()
+        self.global_idf_count = {}
 
     def create_agent(self) -> int:
         agent = Agent(self, generic_distance_function=self.generic_distance_function)
@@ -60,8 +66,15 @@ class KingAgent:
 
     def handle_outliers(self) -> None:
         outliers_id = []
+        my_threads = []
+        for agent_id in self.agents:
+            t = Thread(target=self.agents[agent_id].get_outliers, args=[outliers_id])
+            my_threads.append(t)
+            t.daemon = True
+            t.start()
+        for t in my_threads:
+            t.join()
         for agent_id in copy.deepcopy(self.agents):
-            outliers_id.extend(self.agents[agent_id].get_outliers())
             if len(self.agents[agent_id].dp_ids) < 1:
                 self.remove_agent(agent_id)
         outliers_to_join = []
@@ -138,9 +151,11 @@ class KingAgent:
     def train(self):
         self.warm_up()
         self.handle_outliers()
-
+        KingAgent.dp_now = self.max_topic_count * self.alpha
         while self.data_agent.has_next_dp():
-            print(f'number of agents : {len(self.agents)}')
+            if KingAgent.dp_now % 100 == 0:
+                print(f'data point count = {KingAgent.dp_now} number of agents : {len(self.agents)}')
+            KingAgent.dp_now += 1  # to count on what dp we are at now
             self.stream()
 
             residual = time.mktime(KingAgent.date.timetuple()) % get_seconds(self.communication_step)
@@ -162,14 +177,23 @@ class KingAgent:
         with open(file_dir, 'rb') as file:
             return pickle.load(file)
 
+    def write_topics_to_files(self, parent_dir, max_topic_n=10):
+        agent_topics = self.get_topics_of_agents(max_topic_n)
+        if not os.path.exists(parent_dir):
+            os.makedirs(parent_dir)
+        for agent_id, topics in agent_topics.items():
+            with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w') as file:
+                for item in topics:
+                    file.write(f'{self.data_agent.id_to_token[item[0]]} : {str(item[1])}\n')
+
     def write_output_to_files(self, parent_dir):
+        if not os.path.exists(parent_dir):
+            os.makedirs(parent_dir)
         for agent_id, agent in self.agents.items():
-            if not os.path.exists(parent_dir):
-                os.makedirs(parent_dir)
             with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w') as file:
                 for dp_id in agent.dp_ids:
                     dp_df = self.data_agent.raw_data.iloc[[self.data_agent.data_points[dp_id].index_in_df]]
-                    file.write(str(dp_df['text'].values[0]) + '\n')
+                    file.write(str(dp_df['TEXT'].values[0]) + '\n')
 
     def get_topics_of_agents(self, max_topic_n=10):
         agent_topics = {}
@@ -183,5 +207,5 @@ class KingAgent:
 
                 tf_idf[term_id] = 1 + log((len(self.agents) + 1) / dfi) * (f / sum(agent.agent_global_f.values()))
 
-            agent_topics[agent_id] = sorted(tf_idf.items(), key=lambda x: -x[1])[:max_topic_n]
+            agent_topics[agent_id] = heapq.nlargest(max_topic_n, tf_idf.items(), key=lambda x: x[1])
         return agent_topics

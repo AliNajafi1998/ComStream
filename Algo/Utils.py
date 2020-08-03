@@ -38,14 +38,8 @@ def calculate_idf(king_agent, freq1: dict, freq2: dict):
             freq[token_id] = freq2[token_id]
 
     for token_id_1, frequency_1 in freq.items():
-        counter = 1
-        for agent_id, agent in king_agent.agents.items():
-            if token_id_1 in agent.agent_global_f:
-                counter += 1
-        num = 0
-        for agent_id, agent in king_agent.agents.items():
-            if len(agent.dp_ids) > 0:
-                num += 1
+        counter = 1 + king_agent.global_idf_count.get(token_id_1, 0)
+        num = 1 + len(king_agent.agents)
         idf_dictionary[token_id_1] = 1 + log(num / counter)
 
     return idf_dictionary

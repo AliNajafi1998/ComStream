@@ -1,6 +1,5 @@
 from typing import Callable
 
-from DataPoint import DataPoint
 from Utils import get_seconds
 
 
@@ -17,7 +16,7 @@ class Agent:
         self.king_agent = king_agent
         self.generic_distance_function = generic_distance_function
 
-    def add_data_point(self, dp: DataPoint) -> None:
+    def add_data_point(self, dp) -> None:
         """
         Adding data point to the agent
         :param dp: data point We want to add to the Agent
@@ -29,6 +28,7 @@ class Agent:
                 self.agent_global_f[token_id] += frequency
                 self.update_global_tf(frequency, token_id)
             else:
+                self.king_agent.global_idf_count[token_id] = self.king_agent.global_idf_count.get(token_id, 0) + 1
                 self.agent_global_f[token_id] = frequency
                 self.update_global_tf(frequency, token_id)
 
@@ -50,13 +50,21 @@ class Agent:
         :return: None
         """
         try:
+            # self.king_agent.global_idf_count
             self.dp_ids.remove(dp_id)
             self.weight -= 1
             if self.weight <= 0:
                 self.weight = 0
             for token_id, frequency in self.king_agent.data_agent.data_points[dp_id].freq.items():
+                self.agent_global_f[token_id] -= frequency
+                if self.agent_global_f[token_id] <= 0:
+                    del self.agent_global_f[token_id]
+                    self.king_agent.global_idf_count[token_id] -= 1
+                    if self.king_agent.global_idf_count[token_id] == 0:
+                        del self.king_agent.global_idf_count[token_id]
                 self.king_agent.data_agent.global_freq[token_id] -= frequency
                 self.king_agent.data_agent.terms_global_frequency -= frequency
+
             del self.king_agent.data_agent.data_points[dp_id]
             del self.king_agent.dp_id_to_agent_id[dp_id]
 
@@ -74,7 +82,7 @@ class Agent:
         else:
             self.weight = self.weight * (1 - fade_rate)
 
-    def get_outliers(self) -> list:
+    def get_outliers(self, out) -> None:
         """
         Getting outliers of agent
         :return: list of ids of outliers
@@ -86,7 +94,7 @@ class Agent:
             if distance > self.outlier_threshold:
                 self.dp_ids.remove(dp_id)
                 outliers_id.append(dp_id)
-        return outliers_id
+        out.extend(outliers_id)
 
     def get_distance(self, king_agent, f: dict):
         return self.generic_distance_function(king_agent, f, self.agent_global_f)
