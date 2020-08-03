@@ -96,6 +96,7 @@ class DataAgent:
                     freq_dict[self.token_to_id[token]] = 1
             else:
                 self.token_to_id[token] = DataAgent.token_id
+                self.id_to_token[DataAgent.token_id] = token
                 DataAgent.token_id += 1
         return freq_dict
 

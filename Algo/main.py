@@ -12,7 +12,7 @@ if __name__ == '__main__':
                      alpha=5,
                      outlier_threshold=0.8,
                      top_n=30,
-                     dp_count=1000,
+                     dp_count=100,
                      fading_rate=0,
                      generic_distance=get_distance_tf_idf_cosine,
                      is_twitter=False,
