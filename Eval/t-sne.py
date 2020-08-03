@@ -16,7 +16,7 @@ path = Path(os.getcwd())
 
 # assign the data dirs
 true_dir = str(path.parent) + '/Data/reuters_cleaned.pkl'
-pred_dir = str(path.parent) + '/Data/output/'
+pred_dir = str(path.parent) + '/Algo/output/'
 
 # read the true and pred data
 word2ind = {}
