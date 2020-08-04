@@ -74,9 +74,13 @@ class KingAgent:
             t.start()
         for t in my_threads:
             t.join()
-        for agent_id in copy.deepcopy(self.agents):
+        agents_to_remove = []
+        for agent_id in self.agents:
             if len(self.agents[agent_id].dp_ids) < 1:
-                self.remove_agent(agent_id)
+                agents_to_remove.append(agent_id)
+        for aid in agents_to_remove:
+            self.remove_agent(aid)
+            
         outliers_to_join = []
         for outlier_id in outliers_id:
             min_distance = float('infinity')
