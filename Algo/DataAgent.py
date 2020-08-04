@@ -111,7 +111,4 @@ class DataAgent:
             return dp
 
     def has_next_dp(self):
-        if DataAgent.current_dp_index >= self.count:
-            return False
-        else:
-            return True
+        return not(DataAgent.current_dp_index >= self.count)
