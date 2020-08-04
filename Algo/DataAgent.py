@@ -50,7 +50,6 @@ class DataAgent:
 
         # Updating Current Date
         from KingAgent import KingAgent
-        KingAgent.prev_data = copy.deepcopy(KingAgent.date)
         KingAgent.date = pd.to_datetime(created_at)
 
         return TwitterDataPoint(
@@ -73,7 +72,6 @@ class DataAgent:
 
         # Updating Current Date
         from KingAgent import KingAgent
-        KingAgent.prev_data = copy.deepcopy(KingAgent.date)
         KingAgent.date = created_at
 
         return ReutersDataPoint(

@@ -17,7 +17,6 @@ from DataAgent import DataAgent
 class KingAgent:
     prev_residual = 0
     date = pd.to_datetime('2000-01-29T00:00:00Z')
-    prev_data = None
     dp_now = 0
 
     def __init__(self,
