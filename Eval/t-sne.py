@@ -75,7 +75,7 @@ class TsnePlot():
         tsne_sklearn = TSNE(n_components=2, verbose=1, perplexity=40, n_iter=300)
         # N: number of datapoints to be ploted 'len(self.data_df['y'])' means plot all of them)
         N = min(self.n_dp_to_plot, len(self.data_df['y']))
-        self.df_subset = self.data_df.loc[rndperm[:N], :]  # should it be iloc??????
+        self.df_subset = self.data_df.iloc[rndperm[:N], :]
         data_subset = self.df_subset[self.feat_cols].values
         self.tsne_results = tsne_sklearn.fit_transform(data_subset)
         self.df_subset['tsne-2d-one'] = self.tsne_results[:, 0]
@@ -105,8 +105,17 @@ class TsnePlot():
         self.df_subset = self.df_subset.iloc[non_outlier_indexes[:], :]
         print(f'Number of data points after getting rid of outliers: {len(non_outlier_indexes)}')
 
+    def rearange_label_names(self):
+        count = 0
+        new2old_label = {old_label: new_label for new_label, old_label in enumerate(self.df_subset['y'].unique())}
+        # self.df_subset.replace({'y': new2old_label})
+        labels = self.df_subset['y'].values
+        for ind, old in enumerate(labels):
+            labels[ind] = new2old_label[old]+1
+        self.df_subset['y'] = labels
+
     def plot_tsne_results(self):
-        plt.figure(figsize=(16, 10))
+        plt.figure(figsize=(16, 16))
         scatter_plot = sns.scatterplot(
             x="tsne-2d-one", y="tsne-2d-two",
             hue="y",
@@ -115,7 +124,7 @@ class TsnePlot():
             legend="full",
             alpha=0.4
         )
-        scatter_plot.legend(loc='center left', bbox_to_anchor=(2.0, 2.0))
+        scatter_plot.legend(loc='center left', bbox_to_anchor=(0.0, 0.80))
         plt.show()
         fig = scatter_plot.get_figure()
         fig.savefig("output.png")
@@ -125,12 +134,14 @@ class TsnePlot():
         self.fill_data_frame()
         self.run_tsne()
         self.outlier_removal()
+        self.rearange_label_names()
         self.plot_tsne_results()
 
 
 if __name__ == '__main__':
     tsne = TsnePlot(pred_dir=str(Path(os.getcwd()).parent) + '/Algo/output/',
+                    # a file filled with text files filled with tweets, each text file is a cluster
                     n_dp_to_plot=5000,  # if you want to plot all, put 1e9 here
-                    dp_threshold=20,  # the clusters with dp's more than this number are valid, the rest are outliers
-                    visualization_outlier_threshold=70)  # more means you will see more dp more outliers, put 1e9 to see all
+                    dp_threshold=70,  # the clusters with dp's more than this number are valid, the rest are outliers
+                    visualization_outlier_threshold=40)  # more means you will see more dp and outliers, 1e9 to see all
     tsne.run()
