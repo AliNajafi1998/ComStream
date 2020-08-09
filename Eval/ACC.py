@@ -23,8 +23,6 @@ def acc(y_true, y_pred):
     for i in range(y_pred.size):
         w[y_pred[i], y_true[i]] += 1
     ind = linear_sum_assignment(w.max() - w)
-    # print(ind[0])
-    # print(ind[1])
 
     return w[ind[0], ind[1]].sum() * 1.0 / y_pred.size
 

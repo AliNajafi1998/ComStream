@@ -115,14 +115,19 @@ class TsnePlot():
         self.df_subset['y'] = labels
 
     def plot_tsne_results(self):
+        # sns.palplot(sns.color_palette("Paired"))
+        flatui = ["#9b59b6", "#3498db", "#95a5a6", "#e74c3c", "#34495e", "#2ecc71"]
+
         plt.figure(figsize=(16, 16))
         scatter_plot = sns.scatterplot(
             x="tsne-2d-one", y="tsne-2d-two",
             hue="y",
+            # palette=sns.color_palette("hls", self.df_subset['y'].nunique()),
             palette=sns.color_palette("hls", self.df_subset['y'].nunique()),
             data=self.df_subset,
             legend="full",
             alpha=0.4
+            # sns.color_palette("Paired")
         )
         scatter_plot.legend(loc='center left', bbox_to_anchor=(0.0, 0.80))
         plt.show()
@@ -142,6 +147,6 @@ if __name__ == '__main__':
     tsne = TsnePlot(pred_dir=str(Path(os.getcwd()).parent) + '/Algo/output/',
                     # a file filled with text files filled with tweets, each text file is a cluster
                     n_dp_to_plot=5000,  # if you want to plot all, put 1e9 here
-                    dp_threshold=70,  # the clusters with dp's more than this number are valid, the rest are outliers
+                    dp_threshold=80,  # the clusters with dp's more than this number are valid, the rest are outliers
                     visualization_outlier_threshold=40)  # more means you will see more dp and outliers, 1e9 to see all
     tsne.run()
