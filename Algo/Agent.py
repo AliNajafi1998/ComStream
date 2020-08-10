@@ -75,7 +75,7 @@ class Agent:
         except ValueError:
             print(f'There is no such data point in Agent : {dp_id}')
 
-    def fade_agent_weight(self, agent_id, fade_rate: float, delete_faded_threshold: float) -> None:
+    def fade_agent_weight(self, fade_rate: float, delete_faded_threshold: float) -> None:
         """
         Fading Agent Weight
         :param fade_rate: float number between 0 and 1
@@ -86,9 +86,9 @@ class Agent:
         else:
             self.weight = self.weight * (1 - fade_rate)
             if self.weight < delete_faded_threshold:
-                self.king_agent.remove_agent(agent_id)
+                self.king_agent.remove_agent(self.agent_id)
 
-    def fade_agents_tfs(self, agent_id, fade_rate: float, delete_faded_threshold: float) -> None:
+    def fade_agents_tfs(self, fade_rate: float, delete_faded_threshold: float) -> None:
         """
         Fading Agent Weight
         :param fade_rate: float number between 0 and 1
