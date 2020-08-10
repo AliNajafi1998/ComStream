@@ -1,5 +1,3 @@
-import copy
-
 from Agent import Agent
 from Utils import get_distance_tf_idf_cosine, get_seconds
 import random
@@ -108,9 +106,9 @@ class KingAgent:
         for dp_id, distance, agent_id in outliers_to_join:
             if distance > self.radius:
                 new_agent_id = self.create_agent()
-                self.agents[new_agent_id].add_data_point(self.data_agent.data_points[dp_id], outlier=True)
+                self.agents[new_agent_id].add_data_point(self.data_agent.data_points[dp_id])
             else:
-                self.agents[agent_id].add_data_point(self.data_agent.data_points[dp_id], outlier=True)
+                self.agents[agent_id].add_data_point(self.data_agent.data_points[dp_id])
 
     def warm_up(self):
         for i in range(self.max_topic_count):
@@ -188,6 +186,7 @@ class KingAgent:
                     os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.full_date).replace(':', ''), 'topics'), 5)
             KingAgent.save_output_prev_residual = save_output_residual
 
+        self.fade_agents_weight()
         self.handle_outliers()
         self.handle_old_dps()
 

@@ -7,14 +7,14 @@ if __name__ == '__main__':
     data_path = os.path.join(os.getcwd(), 'Data/data_cleaned.pkl')
     king = KingAgent(max_topic_count=5,
                      save_output_interval="12:00:00",
-                     communication_step="00:01:00",
+                     communication_step="00:00:00",
                      clean_up_step="12:00:00",
                      radius=0.75,  # 75 for reuters
                      alpha=5,
                      outlier_threshold=0.75,
                      top_n=30,
                      dp_count=2000,
-                     fading_rate=0,  # it gets: w*= 1-fading_rate, 0.66 remains if it is 0.33
+                     fading_rate=0.10,  # it gets: w*= 1-fading_rate, 0.66 remains if it is 0.33
                      delete_faded_threshold=0.67,
                      generic_distance=get_distance_tf_idf_cosine,
                      is_twitter=True,

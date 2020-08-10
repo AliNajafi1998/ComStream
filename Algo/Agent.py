@@ -18,7 +18,7 @@ class Agent:
         self.king_agent = king_agent
         self.generic_distance_function = generic_distance_function
 
-    def add_data_point(self, dp, outlier=False) -> None:
+    def add_data_point(self, dp) -> None:
         """
         Adding data point to the agent
         :param dp: data point We want to add to the Agent
@@ -34,8 +34,7 @@ class Agent:
                 self.agent_f[token_id] = frequency
                 self.update_global_tf(frequency, token_id)
 
-        if not outlier:
-            self.dp_ids.append(dp.dp_id)
+        self.dp_ids.append(dp.dp_id)
         self.king_agent.dp_id_to_agent_id[dp.dp_id] = self.agent_id
 
     def update_global_tf(self, frequency, token_id):
