@@ -16,10 +16,13 @@ from DataAgent import DataAgent
 
 class KingAgent:
     prev_residual = 0
+    save_output_prev_residual = 0
     date = pd.to_datetime('2000-01-29T00:00:00Z')
     dp_now = 0
+    full_date = '2000-01-29T00:00:00Z'
 
     def __init__(self,
+                 save_output_interval: str,
                  max_topic_count: int,
                  communication_step: str,
                  clean_up_step: str,
@@ -38,6 +41,7 @@ class KingAgent:
 
         if are_invalid_steps:
             raise Exception(f'Invalid inputs fot steps')
+        self.save_output_interval = save_output_interval
         self.is_twitter = is_twitter
         self.agents = {}
         self.radius = radius
@@ -79,7 +83,7 @@ class KingAgent:
                 agents_to_remove.append(agent_id)
         for aid in agents_to_remove:
             self.remove_agent(aid)
-            
+
         outliers_to_join = []
         for outlier_id in outliers_id:
             min_distance = float('infinity')
@@ -156,13 +160,27 @@ class KingAgent:
             KingAgent.dp_now += 1  # to count on what dp we are at now
             self.stream()
 
+            # communication
             residual = time.mktime(KingAgent.date.timetuple()) % get_seconds(self.communication_step)
             if residual < KingAgent.prev_residual:
-                KingAgent.prev_residual = 0
                 self.handle_old_dps()
                 self.handle_outliers()
                 self.fade_agents()
             KingAgent.prev_residual = residual
+
+            # save output every interval
+            save_output_residual = time.mktime(KingAgent.date.timetuple()) % get_seconds(self.save_output_interval)
+
+            if save_output_residual < KingAgent.save_output_prev_residual:
+                print('saved')
+                self.save_model(
+                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.full_date).replace(':', ''), 'model'))
+                self.write_output_to_files(
+                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.full_date).replace(':', ''), 'clusters'))
+                self.write_topics_to_files(
+                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.full_date).replace(':', ''), 'topics'), 5)
+            KingAgent.save_output_prev_residual = save_output_residual
+
         self.handle_outliers()
         self.handle_old_dps()
 
@@ -194,9 +212,9 @@ class KingAgent:
                 for dp_id in agent.dp_ids:
                     dp_df = self.data_agent.raw_data.iloc[[self.data_agent.data_points[dp_id].index_in_df]]
                     if self.is_twitter:
-                        file.write(str(dp_df['text'].values[0]) + '\n')
+                        file.write(str(dp_df['text'].values[0]) + '\n\n')
                     else:
-                        file.write(str(dp_df['TEXT'].values[0]) + '\n')
+                        file.write(str(dp_df['TEXT'].values[0]) + '\n\n')
 
     def get_topics_of_agents(self, max_topic_n=10):
         agent_topics = {}

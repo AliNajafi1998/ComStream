@@ -51,6 +51,7 @@ class DataAgent:
         # Updating Current Date
         from KingAgent import KingAgent
         KingAgent.date = pd.to_datetime(created_at)
+        KingAgent.full_date = dp['created_at'].values[0]
 
         return TwitterDataPoint(
             freq=freq_dict, time_stamp=time_stamp,
