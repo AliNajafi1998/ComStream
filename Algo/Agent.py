@@ -12,7 +12,7 @@ class Agent:
         self.agent_id = Agent.agent_id
         self.outlier_threshold = king_agent.outlier_threshold
         Agent.agent_id += 1
-        self.agent_global_f = {}
+        self.agent_f = {}
         self.weight = 0
         self.dp_ids = []
         self.king_agent = king_agent
@@ -26,12 +26,12 @@ class Agent:
         """
         self.weight += 1
         for token_id, frequency in dp.freq.items():
-            if token_id in self.agent_global_f:
-                self.agent_global_f[token_id] += frequency
+            if token_id in self.agent_f:
+                self.agent_f[token_id] += frequency
                 self.update_global_tf(frequency, token_id)
             else:
                 self.king_agent.global_idf_count[token_id] = self.king_agent.global_idf_count.get(token_id, 0) + 1
-                self.agent_global_f[token_id] = frequency
+                self.agent_f[token_id] = frequency
                 self.update_global_tf(frequency, token_id)
 
         if not outlier:
@@ -53,20 +53,24 @@ class Agent:
         :return: None
         """
         try:
-            # self.king_agent.global_idf_count
             self.dp_ids.remove(dp_id)
             self.weight -= 1
             if self.weight <= 0:
                 self.weight = 0
             for token_id, frequency in self.king_agent.data_agent.data_points[dp_id].freq.items():
-                self.agent_global_f[token_id] -= frequency
-                if self.agent_global_f[token_id] <= 0:
-                    del self.agent_global_f[token_id]
-                    self.king_agent.global_idf_count[token_id] -= 1
-                    if self.king_agent.global_idf_count[token_id] == 0:
-                        del self.king_agent.global_idf_count[token_id]
-                self.king_agent.data_agent.global_freq[token_id] -= frequency
-                self.king_agent.data_agent.terms_global_frequency -= frequency
+                if token_id in self.agent_f:
+                    self.agent_f[token_id] -= frequency
+
+                    if self.agent_f[token_id] <= 0:
+                        del self.agent_f[token_id]
+                        self.king_agent.global_idf_count[token_id] -= 1
+                        if self.king_agent.global_idf_count[token_id] == 0:
+                            del self.king_agent.global_idf_count[token_id]
+                    self.king_agent.data_agent.global_freq[token_id] -= frequency
+                    self.king_agent.data_agent.terms_global_frequency -= frequency
+                else:
+                    self.king_agent.data_agent.global_freq[token_id] -= frequency
+                    self.king_agent.data_agent.terms_global_frequency -= frequency
 
             if not outlier:
                 del self.king_agent.data_agent.data_points[dp_id]
@@ -81,28 +85,39 @@ class Agent:
         :param fade_rate: float number between 0 and 1
         :return: None
         """
-        if fade_rate > 1 or fade_rate < 0 or delete_faded_threshold > 1 or delete_faded_threshold < 0:
-            raise Exception(f'Invalid Fade Rate or delete_faded_threshold : {fade_rate, delete_faded_threshold}')
+        if abs(fade_rate) < 1e-9:
+            pass
         else:
-            self.weight = self.weight * (1 - fade_rate)
-            if self.weight < delete_faded_threshold:
-                self.king_agent.remove_agent(self.agent_id)
+            if fade_rate > 1 or fade_rate < 0 or delete_faded_threshold > 1 or delete_faded_threshold < 0:
+                raise Exception(f'Invalid Fade Rate or delete_faded_threshold : {fade_rate, delete_faded_threshold}')
+            else:
+                self.weight = self.weight * (1 - fade_rate)
+                if self.weight < delete_faded_threshold:
+                    self.king_agent.remove_agent(self.agent_id)
 
-    def fade_agents_tfs(self, fade_rate: float, delete_faded_threshold: float) -> None:
+    def fade_agent_tfs(self, fade_rate: float, delete_faded_threshold: float) -> None:
         """
         Fading Agent Weight
         :param fade_rate: float number between 0 and 1
         :return: None
         """
-        if fade_rate > 1 or fade_rate < 0 or delete_faded_threshold > 1 or delete_faded_threshold < 0:
-            raise Exception(f'Invalid Fade Rate or delete_faded_threshold : {fade_rate, delete_faded_threshold}')
-        else:
+        if abs(fade_rate) < 1e-9:
             pass
-            # do stuff here najafi
-            # 1) every term of this agent *= (1 - fade_rate)
-            # 2) delete the terms from dict that are <= delete_faded_threshold
-            # NOKTE: update gloabl terms too......
-            # 3) remove the global terms that are <= delete_faded_threshold too
+        else:
+            if fade_rate > 1 or fade_rate < 0 or delete_faded_threshold > 1 or delete_faded_threshold < 0:
+                raise Exception(f'Invalid Fade Rate or delete_faded_threshold : {fade_rate, delete_faded_threshold}')
+            else:
+                agent_global_f = dict()
+                for token_id in self.agent_f:
+                    new_f = self.agent_f[token_id] * (1 - fade_rate)
+                    if new_f > delete_faded_threshold:
+                        agent_global_f[token_id] = new_f
+                    else:
+                        self.king_agent.global_idf_count[token_id] -= 1
+                        if self.king_agent.global_idf_count[token_id] == 0:
+                            del self.king_agent.global_idf_count[token_id]
+
+                self.agent_f = agent_global_f
 
     def get_outliers(self, out) -> None:
         """
@@ -119,7 +134,7 @@ class Agent:
         out.extend(outliers_id)
 
     def get_distance(self, king_agent, f: dict):
-        return self.generic_distance_function(king_agent, f, self.agent_global_f)
+        return self.generic_distance_function(king_agent, f, self.agent_f)
 
     def handle_old_dps(self):
         for dp_id in self.dp_ids:

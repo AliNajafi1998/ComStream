@@ -144,7 +144,7 @@ class KingAgent:
     def fade_agents_weight(self):
         for agent_id in list(self.agents.keys()):
             agent = self.agents[agent_id]
-            agent.fade_agent_weight(self.fading_rate, self.delete_faded_threshold, self)
+            agent.fade_agent_weight(self.fading_rate, self.delete_faded_threshold)
 
     def fade_agents_tfs(self):
         for agent_id in list(self.agents.keys()):
@@ -227,13 +227,13 @@ class KingAgent:
         agent_topics = {}
         for agent_id, agent in self.agents.items():
             tf_idf = {}
-            for term_id, f in agent.agent_global_f.items():
+            for term_id, f in agent.agent_f.items():
                 dfi = 0
                 for agent_id_2, agent_2 in self.agents.items():
-                    if term_id in agent_2.agent_global_f:
+                    if term_id in agent_2.agent_f:
                         dfi += 1
 
-                tf_idf[term_id] = 1 + log((len(self.agents) + 1) / dfi) * (f / sum(agent.agent_global_f.values()))
+                tf_idf[term_id] = 1 + log((len(self.agents) + 1) / dfi) * (f / sum(agent.agent_f.values()))
 
             agent_topics[agent_id] = heapq.nlargest(max_topic_n, tf_idf.items(), key=lambda x: x[1])
         return agent_topics
