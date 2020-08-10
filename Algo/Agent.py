@@ -5,13 +5,15 @@ from Utils import get_seconds
 
 class Agent:
     agent_id = 0
+    epsilon = 1e-7
 
     def __init__(self, king_agent, generic_distance_function: Callable):
+
         self.agent_id = Agent.agent_id
         self.outlier_threshold = king_agent.outlier_threshold
         Agent.agent_id += 1
         self.agent_global_f = {}
-        self.weight = 1
+        self.weight = 0
         self.dp_ids = []
         self.king_agent = king_agent
         self.generic_distance_function = generic_distance_function
@@ -73,16 +75,36 @@ class Agent:
         except ValueError:
             print(f'There is no such data point in Agent : {dp_id}')
 
-    def fade_agent(self, fade_rate: float) -> None:
+    def fade_agent_weight(self, fade_rate: float, delete_faded_threshold: float) -> None:
         """
         Fading Agent Weight
         :param fade_rate: float number between 0 and 1
         :return: None
         """
-        if fade_rate > 1 or fade_rate < 0:
-            raise Exception(f'Invalid Fade Rate : {fade_rate}')
+        if fade_rate > 1 or fade_rate < 0 or delete_faded_threshold > 1 or delete_faded_threshold < 0:
+            raise Exception(f'Invalid Fade Rate or delete_faded_threshold : {fade_rate, delete_faded_threshold}')
         else:
             self.weight = self.weight * (1 - fade_rate)
+            if self.weight < delete_faded_threshold:
+                self.king_agent.remove_agent(self.agent_id)
+
+    def fade_agents_tfs(self, fade_rate: float, delete_faded_threshold: float) -> None:
+        """
+        Fading Agent Weight
+        :param fade_rate: float number between 0 and 1
+        :return: None
+        """
+        if fade_rate > 1 or fade_rate < 0 or delete_faded_threshold > 1 or delete_faded_threshold < 0:
+            raise Exception(f'Invalid Fade Rate or delete_faded_threshold : {fade_rate, delete_faded_threshold}')
+        else:
+
+            for token_id, frequency in self.king_agent.data_agent.data_points[self.dp_id].freq.items():
+                pass
+                # do stuff here najafi
+                # 1) every term of this agent *= (1 - fade_rate)
+                # 2) delete the terms from dict that are <= delete_faded_threshold
+                # NOKTE: update gloabl terms too......
+                # 3) remove the global terms that are <= delete_faded_threshold too
 
     def get_outliers(self, out) -> None:
         """

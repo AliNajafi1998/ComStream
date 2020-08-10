@@ -31,7 +31,8 @@ class KingAgent:
                  outlier_threshold: float,
                  top_n: int,
                  dp_count: int,
-                 fading_rate,
+                 fading_rate: float,
+                 delete_faded_threshold: float,
                  data_file_path: str,
                  is_twitter=False,
                  generic_distance=get_distance_tf_idf_cosine):
@@ -46,6 +47,7 @@ class KingAgent:
         self.agents = {}
         self.radius = radius
         self.fading_rate = fading_rate
+        self.delete_faded_threshold = delete_faded_threshold
         self.communication_step = communication_step
         self.alpha = alpha
         self.max_topic_count = max_topic_count
@@ -139,12 +141,16 @@ class KingAgent:
         else:
             self.agents[similar_agent_id].add_data_point(self.data_agent.data_points[dp.dp_id])
 
-    def fade_agents(self):
+    def fade_agents_weight(self):
         for agent_id in list(self.agents.keys()):
             agent = self.agents[agent_id]
-            agent.fade_agent(self.fading_rate)
-            if agent.weight < self.data_agent.epsilon:
-                self.remove_agent(agent_id)
+            agent.fade_agent_weight(self.fading_rate, self.delete_faded_threshold, self)
+
+    def fade_agents_tfs(self):
+        for agent_id in list(self.agents.keys()):
+            agent = self.agents[agent_id]
+            agent.fade_agent_tfs(self.fading_rate, self.delete_faded_threshold)
+            # removing very small tf's happens in fade_agent_tfs too
 
     def handle_old_dps(self):
         for agent_id, agent in self.agents.items():
@@ -165,7 +171,8 @@ class KingAgent:
             if residual < KingAgent.prev_residual:
                 self.handle_old_dps()
                 self.handle_outliers()
-                self.fade_agents()
+                self.fade_agents_weight()
+                self.fade_agents_tfs()
             KingAgent.prev_residual = residual
 
             # save output every interval
