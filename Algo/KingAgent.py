@@ -144,12 +144,12 @@ class KingAgent:
     def fade_agents_weight(self):
         for agent_id in list(self.agents.keys()):
             agent = self.agents[agent_id]
-            agent.fade_agent_weight(self.fading_rate, self.delete_faded_threshold, self)
+            agent.fade_agent_weight(agent_id, self.fading_rate, self.delete_faded_threshold, self)
 
     def fade_agents_tfs(self):
         for agent_id in list(self.agents.keys()):
             agent = self.agents[agent_id]
-            agent.fade_agent_tfs(self.fading_rate, self.delete_faded_threshold)
+            agent.fade_agent_tfs(agent_id, self.fading_rate, self.delete_faded_threshold)
             # removing very small tf's happens in fade_agent_tfs too
 
     def handle_old_dps(self):
