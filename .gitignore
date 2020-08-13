@@ -7,5 +7,6 @@ __pycache__/
 Algo/output/
 Algo/topics/
 Algo/model/
+Algo/last_output/
 Algo/tmp_output/
 .idea/
