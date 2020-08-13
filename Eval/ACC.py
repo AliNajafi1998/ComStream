@@ -7,7 +7,6 @@ nmi = normalized_mutual_info_score
 ari = adjusted_rand_score
 
 
-
 def purity_score(y_true, y_pred):
     # Labels should begin from 0
     # Labels should be positive and ordered (i.e 0,1 not 0,2)
@@ -73,4 +72,3 @@ def acc(y_true, y_pred):
     ind = linear_sum_assignment(w.max() - w)
 
     return w[ind[0], ind[1]].sum() * 1.0 / y_pred.size
-

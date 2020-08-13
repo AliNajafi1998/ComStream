@@ -25,7 +25,7 @@ for label_dir in os.listdir(pred_dir):
     clean_lines = []
     all_text = ''
     for line in lines:
-        all_text+=line
+        all_text += line
     lines = [line.strip() for line in all_text.split('\n\n\n')]
     for line in lines:
         if line != '':
@@ -59,7 +59,6 @@ for index, row in df_true_data.iterrows():
         continue
     y_true.append(true_topic2ind[row['TOPICS']])
     y_pred.append(pred_text2label[tweet_text])
-
 
 print(f'number of all clusters:{no_clusters}')
 print(f'number of all without the outliers: {no_clusters_without_outliers}')
