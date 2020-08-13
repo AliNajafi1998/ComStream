@@ -159,7 +159,7 @@ class KingAgent:
         self.handle_outliers()
         KingAgent.dp_now = self.max_topic_count * self.alpha
         while self.data_agent.has_next_dp():
-            if (KingAgent.dp_now + 1) % 1000 == 0:
+            if (KingAgent.dp_now + 1) % 100 == 0:
                 print(f'data point count = {KingAgent.dp_now + 1} number of agents : {len(self.agents)}')
             KingAgent.dp_now += 1  # to count on what dp we are at now
             self.stream()
@@ -173,17 +173,16 @@ class KingAgent:
                 self.fade_agents_tfs()
                 print('cleaned up')
             KingAgent.prev_residual = residual
-
             # save output every interval
             save_output_residual = time.mktime(KingAgent.date.timetuple()) % get_seconds(self.save_output_interval)
 
             if save_output_residual < KingAgent.save_output_prev_residual:
                 self.save_model(
-                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.full_date).replace(':', ''), 'model'))
+                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.full_date).replace(':', '')+'--'+str(KingAgent.dp_now), 'model'))
                 self.write_output_to_files(
-                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.full_date).replace(':', ''), 'clusters'))
+                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.full_date).replace(':', '')+'--'+str(KingAgent.dp_now), 'clusters'))
                 self.write_topics_to_files(
-                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.full_date).replace(':', ''), 'topics'), 5)
+                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.full_date).replace(':', '')+'--'+str(KingAgent.dp_now), 'topics'), 5)
                 print('saved')
             KingAgent.save_output_prev_residual = save_output_residual
 
