@@ -9,4 +9,7 @@ Algo/topics/
 Algo/model/
 Algo/last_output/
 Algo/tmp_output/
+Algo/DBScan/output/
+Algo/KMeans/output/
+Algo/LDA/output/
 .idea/
