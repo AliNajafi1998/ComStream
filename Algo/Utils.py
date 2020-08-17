@@ -41,6 +41,7 @@ def calculate_idf(king_agent, freq1: dict, freq2: dict):
         counter = 1 + king_agent.global_idf_count.get(token_id_1, 0)
         num = 1 + len(king_agent.agents)
         idf_dictionary[token_id_1] = 1 + log(num / counter)
+        # idf_dictionary[token_id_1] = 1
 
     return idf_dictionary
 

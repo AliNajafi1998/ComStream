@@ -18,6 +18,7 @@ class KingAgent:
     date = pd.to_datetime('2000-01-29T00:00:00Z')
     dp_now = 0
     full_date = '2000-01-29T00:00:00Z'
+    prev_full_date = '2000-01-29T00:00:00Z'
 
     def __init__(self,
                  save_output_interval: str,
@@ -159,7 +160,7 @@ class KingAgent:
         self.handle_outliers()
         KingAgent.dp_now = self.max_topic_count * self.alpha
         while self.data_agent.has_next_dp():
-            if (KingAgent.dp_now + 1) % 100 == 0:
+            if (KingAgent.dp_now + 1) % 1000 == 0:
                 print(f'data point count = {KingAgent.dp_now + 1} number of agents : {len(self.agents)}')
             KingAgent.dp_now += 1  # to count on what dp we are at now
             self.stream()
@@ -170,25 +171,32 @@ class KingAgent:
                 self.handle_old_dps()
                 self.handle_outliers()
                 self.fade_agents_weight()
-                self.fade_agents_tfs()
+                # self.fade_agents_tfs()
                 print('cleaned up')
             KingAgent.prev_residual = residual
             # save output every interval
             save_output_residual = time.mktime(KingAgent.date.timetuple()) % get_seconds(self.save_output_interval)
 
-            if save_output_residual < KingAgent.save_output_prev_residual:
+            # if save_output_residual < KingAgent.save_output_prev_residual:
+            if KingAgent.prev_full_date[:10] != KingAgent.full_date[:10] and KingAgent.prev_full_date!= '2000-01-29T00:00:00Z':
+                self.handle_old_dps()
+                self.handle_outliers()
+                # self.fade_agents_weight()
+                # self.fade_agents_tfs()
+
                 self.save_model(
-                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.full_date).replace(':', '')+'--'+str(KingAgent.dp_now), 'model'))
+                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.prev_full_date).replace(':', '_')+'--'+str(KingAgent.dp_now), 'model'))
                 self.write_output_to_files(
-                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.full_date).replace(':', '')+'--'+str(KingAgent.dp_now), 'clusters'))
+                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.prev_full_date).replace(':', '_')+'--'+str(KingAgent.dp_now), 'clusters'))
                 self.write_topics_to_files(
-                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.full_date).replace(':', '')+'--'+str(KingAgent.dp_now), 'topics'), 5)
+                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.prev_full_date).replace(':', '_')+'--'+str(KingAgent.dp_now), 'topics'), 5)
                 print('saved')
+            KingAgent.prev_full_date = KingAgent.full_date
             KingAgent.save_output_prev_residual = save_output_residual
 
-        self.fade_agents_weight()
-        self.handle_outliers()
+        # self.fade_agents_weight()
         self.handle_old_dps()
+        self.handle_outliers()
 
     def save_model(self, parent_dir):
         if not os.path.exists(parent_dir):
