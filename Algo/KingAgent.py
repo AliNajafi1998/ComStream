@@ -10,6 +10,7 @@ from math import log
 import heapq
 from threading import Thread
 from DataAgent import DataAgent
+from pathlib import Path
 
 
 class KingAgent:
@@ -178,18 +179,29 @@ class KingAgent:
             save_output_residual = time.mktime(KingAgent.date.timetuple()) % get_seconds(self.save_output_interval)
 
             # if save_output_residual < KingAgent.save_output_prev_residual:
-            if KingAgent.prev_full_date[:10] != KingAgent.full_date[:10] and KingAgent.prev_full_date!= '2000-01-29T00:00:00Z':
+            if KingAgent.prev_full_date[:10] != KingAgent.full_date[
+                                                :10] and KingAgent.prev_full_date != '2000-01-29T00:00:00Z':
                 self.handle_old_dps()
                 self.handle_outliers()
                 # self.fade_agents_weight()
                 # self.fade_agents_tfs()
 
                 self.save_model(
-                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.prev_full_date).replace(':', '_')+'--'+str(KingAgent.dp_now), 'model'))
+                    os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+                                 'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
+                                 'model'))
                 self.write_output_to_files(
-                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.prev_full_date).replace(':', '_')+'--'+str(KingAgent.dp_now), 'clusters'))
+                    os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+                                 'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
+                                 'clusters'))
                 self.write_topics_to_files(
-                    os.path.join(os.getcwd(), 'output', 'X' + str(KingAgent.prev_full_date).replace(':', '_')+'--'+str(KingAgent.dp_now), 'topics'), 5)
+                    os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+                                 'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
+                                 'topics'), 5)
+                self.write_tweet_ids_to_files(
+                    os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+                                 'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
+                                 'clusters_tweet_ids'))
                 print('saved')
             KingAgent.prev_full_date = KingAgent.full_date
             KingAgent.save_output_prev_residual = save_output_residual
@@ -197,6 +209,23 @@ class KingAgent:
         # self.fade_agents_weight()
         self.handle_old_dps()
         self.handle_outliers()
+        self.save_model(
+            os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+                         'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now), 'model'))
+        self.write_output_to_files(
+            os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+                         'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
+                         'clusters'))
+        self.write_topics_to_files(
+            os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+                         'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
+                         'topics'), 5)
+        self.write_tweet_ids_to_files(
+            os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+                         'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
+                         'clusters_tweet_ids'))
+
+        print('saved')
 
     def save_model(self, parent_dir):
         if not os.path.exists(parent_dir):
@@ -229,6 +258,19 @@ class KingAgent:
                         file.write(str(dp_df['text'].values[0]) + '\n\n')
                     else:
                         file.write(str(dp_df['TEXT'].values[0]) + '\n\n')
+
+    def write_tweet_ids_to_files(self, parent_dir):
+        if not self.is_twitter:
+            return
+        if not os.path.exists(parent_dir):
+            os.makedirs(parent_dir)
+        for agent_id, agent in self.agents.items():
+            with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w', encoding='utf8') as file:
+                for dp_id in agent.dp_ids:
+                    tweet_id = self.data_agent.data_points[dp_id].status_id
+                    if self.is_twitter:
+                        file.write(str(tweet_id) + '\n')
+
 
     def get_topics_of_agents(self, max_topic_n=10):
         agent_topics = {}
