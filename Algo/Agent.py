@@ -53,7 +53,7 @@ class Agent:
         """
         try:
             self.dp_ids.remove(dp_id)
-            self.weight -= 1
+            # self.weight -= 1
             if self.weight <= 0:
                 self.weight = 0
             for token_id, frequency in self.king_agent.data_agent.data_points[dp_id].freq.items():
