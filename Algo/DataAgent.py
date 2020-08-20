@@ -49,11 +49,6 @@ class DataAgent:
         # retweet_count = dp['retweet_count'].values[0]
         retweet_count = 1
 
-        # Updating Current Date
-        from KingAgent import KingAgent
-        KingAgent.date = pd.to_datetime(created_at)
-        KingAgent.full_date = dp['created_at'].values[0]
-
         return TwitterDataPoint(
             freq=freq_dict, time_stamp=time_stamp,
             user_id=user_id, status_id=status_id,
@@ -71,10 +66,6 @@ class DataAgent:
         time_stamp = datetime.now()
         topics = dp['TOPICS']
         created_at = pd.to_datetime(dp['CREATED_AT'].values[0])
-
-        # Updating Current Date
-        from KingAgent import KingAgent
-        KingAgent.date = created_at
 
         return ReutersDataPoint(
             freq=freq_dict,
@@ -111,4 +102,4 @@ class DataAgent:
             return dp
 
     def has_next_dp(self):
-        return not(DataAgent.current_dp_index >= self.count)
+        return not (DataAgent.current_dp_index >= self.count)

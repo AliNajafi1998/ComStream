@@ -11,9 +11,12 @@ import heapq
 from threading import Thread
 from DataAgent import DataAgent
 from pathlib import Path
+import copy
 
 
 class KingAgent:
+    current_date = pd.to_datetime('2020-03-29T00:00:00Z')
+
     prev_residual = 0
     save_output_prev_residual = 0
     date = pd.to_datetime('2000-01-29T00:00:00Z')
@@ -58,6 +61,7 @@ class KingAgent:
         self.generic_distance_function = generic_distance
         self.dp_id_to_agent_id = dict()
         self.global_idf_count = {}
+        self.first_residual = None
 
     def create_agent(self) -> int:
         agent = Agent(self, generic_distance_function=self.generic_distance_function)
@@ -115,19 +119,23 @@ class KingAgent:
     def warm_up(self):
         for i in range(self.max_topic_count):
             self.create_agent()
-
+        flag = True
         agents_dict = {id_: self.alpha for id_ in self.agents.keys()}
         for i in range(self.max_topic_count * self.alpha):
             random_agent_id = random.sample(list(agents_dict), k=1)[0]
             dp = self.data_agent.get_next_dp()
+            if flag:
+                self.first_residual = time.mktime(KingAgent.current_date.timetuple()) % get_seconds(
+                    self.communication_step) - 1
+                flag = False
+            KingAgent.current_date = copy.deepcopy(dp.created_at)
             self.agents[random_agent_id].add_data_point(dp)
             agents_dict[random_agent_id] -= 1
             if agents_dict[random_agent_id] == 0:
                 del agents_dict[random_agent_id]
         del agents_dict
 
-    def stream(self):
-        dp = self.data_agent.get_next_dp()
+    def stream(self, dp):
         min_distance = float('infinity')
         similar_agent_id = -1
         for agent_id, agent in self.agents.items():
@@ -161,71 +169,80 @@ class KingAgent:
         self.handle_outliers()
         KingAgent.dp_now = self.max_topic_count * self.alpha
         while self.data_agent.has_next_dp():
+            dp = self.data_agent.get_next_dp()
             if (KingAgent.dp_now + 1) % 1000 == 0:
                 print(f'data point count = {KingAgent.dp_now + 1} number of agents : {len(self.agents)}')
             KingAgent.dp_now += 1  # to count on what dp we are at now
-            self.stream()
+            flag = True
+            while flag:
+                KingAgent.current_date += pd.Timedelta(seconds=1)
+                if dp.created_at <= KingAgent.current_date:
+                    self.stream(dp)
+                    flag = False
+                # communication
+                residual = (time.mktime(KingAgent.current_date.timetuple()) - self.first_residual) % get_seconds(self.communication_step)
+                if residual < KingAgent.prev_residual:
+                    self.handle_old_dps()
+                    self.handle_outliers()
+                    self.fade_agents_weight()
+                    # self.fade_agents_tfs()
+                    print('cleaned up')
+                KingAgent.prev_residual = residual
+                print(residual)
+                # save output every interval
+                # save_output_residual = time.mktime(KingAgent.current_date.timetuple()) % get_seconds(self.save_output_interval)
 
-            # communication
-            residual = time.mktime(KingAgent.date.timetuple()) % get_seconds(self.communication_step)
-            if residual < KingAgent.prev_residual:
-                self.handle_old_dps()
-                self.handle_outliers()
-                self.fade_agents_weight()
-                # self.fade_agents_tfs()
-                print('cleaned up')
-            KingAgent.prev_residual = residual
-            # save output every interval
-            save_output_residual = time.mktime(KingAgent.date.timetuple()) % get_seconds(self.save_output_interval)
-
-            # if save_output_residual < KingAgent.save_output_prev_residual:
-            if KingAgent.prev_full_date[:10] != KingAgent.full_date[
-                                                :10] and KingAgent.prev_full_date != '2000-01-29T00:00:00Z':
-                self.handle_old_dps()
-                self.handle_outliers()
-                # self.fade_agents_weight()
-                # self.fade_agents_tfs()
-
-                self.save_model(
-                    os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
-                                 'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
-                                 'model'))
-                self.write_output_to_files(
-                    os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
-                                 'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
-                                 'clusters'))
-                self.write_topics_to_files(
-                    os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
-                                 'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
-                                 'topics'), 5)
-                self.write_tweet_ids_to_files(
-                    os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
-                                 'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
-                                 'clusters_tweet_ids'))
-                print('saved')
-            KingAgent.prev_full_date = KingAgent.full_date
-            KingAgent.save_output_prev_residual = save_output_residual
+                # if save_output_residual < KingAgent.save_output_prev_residual:
+                #     self.handle_old_dps()
+                #     self.handle_outliers()
+                #     # self.fade_agents_weight()
+                #     # self.fade_agents_tfs()
+                #
+                #     self.save_model(
+                #         os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+                #                      'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(
+                #                          KingAgent.dp_now),
+                #                      'model'))
+                #     self.write_output_to_files(
+                #         os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+                #                      'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(
+                #                          KingAgent.dp_now),
+                #                      'clusters'))
+                #     self.write_topics_to_files(
+                #         os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+                #                      'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(
+                #                          KingAgent.dp_now),
+                #                      'topics'), 5)
+                #     self.write_tweet_ids_to_files(
+                #         os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+                #                      'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(
+                #                          KingAgent.dp_now),
+                #                      'clusters_tweet_ids'))
+                #     print('saved')
+                # KingAgent.prev_full_date = KingAgent.full_date
+                # KingAgent.save_output_prev_residual = save_output_residual
 
         # self.fade_agents_weight()
         self.handle_old_dps()
         self.handle_outliers()
-        self.save_model(
-            os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
-                         'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now), 'model'))
-        self.write_output_to_files(
-            os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
-                         'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
-                         'clusters'))
-        self.write_topics_to_files(
-            os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
-                         'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
-                         'topics'), 5)
-        self.write_tweet_ids_to_files(
-            os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
-                         'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
-                         'clusters_tweet_ids'))
-
-        print('saved')
+        # self.save_model(
+        #     os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+        #                  'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
+        #                  'model'))
+        # self.write_output_to_files(
+        #     os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+        #                  'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
+        #                  'clusters'))
+        # self.write_topics_to_files(
+        #     os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+        #                  'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
+        #                  'topics'), 5)
+        # self.write_tweet_ids_to_files(
+        #     os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+        #                  'X' + str(KingAgent.prev_full_date).replace(':', '_') + '--' + str(KingAgent.dp_now),
+        #                  'clusters_tweet_ids'))
+        #
+        # print('saved')
 
     def save_model(self, parent_dir):
         if not os.path.exists(parent_dir):
@@ -270,7 +287,6 @@ class KingAgent:
                     tweet_id = self.data_agent.data_points[dp_id].status_id
                     if self.is_twitter:
                         file.write(str(tweet_id) + '\n')
-
 
     def get_topics_of_agents(self, max_topic_n=10):
         agent_topics = {}

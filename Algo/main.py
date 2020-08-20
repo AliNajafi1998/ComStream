@@ -4,7 +4,7 @@ import os
 
 if __name__ == '__main__':
     os.chdir('..')
-    data_path = os.path.join(os.getcwd(), 'Data/data_cleaned_700k.pkl')
+    data_path = os.path.join(os.getcwd(), 'Data/data_cleaned.pkl')
     king = KingAgent(max_topic_count=5,
                      save_output_interval="24:00:00",
                      communication_step="02:00:00",
