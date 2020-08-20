@@ -5,11 +5,12 @@ import pandas as pd
 
 dir = os.path.join(Path(os.getcwd()).parent, 'Data/data_cleaned.pkl')
 df = pd.read_pickle(dir)
-df = df.iloc[np.random.RandomState(seed=42).permutation(len(df))[:1000000]]
+print(len(df))
+df = df.iloc[np.random.RandomState(seed=42).permutation(len(df))[:700000]]
 df = df.sort_values(by=['created_at'])
 df = df.reset_index().drop(['index'], axis=1)
 # print(df.head())
-df.to_pickle(os.path.join(Path(os.getcwd()).parent, 'Data/data_cleaned_1000k.pkl'))
+df.to_pickle(os.path.join(Path(os.getcwd()).parent, 'Data/data_cleaned_700k.pkl'))
 
 # df['created_at'] = df['created_at'].apply(lambda x: x[:10])
 # days = df['created_at'].unique()  # a list of ['2020-03-29' '2020-03-30'....]
