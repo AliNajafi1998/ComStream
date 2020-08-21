@@ -3,6 +3,13 @@ from math import sqrt, log
 
 
 def get_distance_tf_idf_cosine(king_agent, freq1: dict, freq2: dict):
+    """
+    get the distance using cosine similarity with tf-idf
+    :param king_agent: the object of the king agent so we have the global variables
+    :param freq1: the frequencies of the first dictionary of {token_id:frequencies}
+    :param freq2: the frequencies of the second dictionary of {token_id:frequencies}
+    :return: (int) returns the distance of the 2 frequency dictionaries
+    """
     idf = calculate_idf(king_agent, freq1, freq2)
 
     sum_freq1 = sum(freq1.values())
@@ -29,6 +36,13 @@ def get_distance_tf_idf_cosine(king_agent, freq1: dict, freq2: dict):
 
 
 def calculate_idf(king_agent, freq1: dict, freq2: dict):
+    """
+    calculates the idf for each token and returns it
+    :param king_agent: the object of the king agent so we have the global variables
+    :param freq1: the frequencies of the first dictionary of {token_id:frequencies}
+    :param freq2: the frequencies of the second dictionary of {token_id:frequencies}
+    :return: returns a dictionary of idfs for each token {token_id:frequencies}
+    """
     idf_dictionary = dict()
     freq = copy.deepcopy(freq1)
     for token_id, f1 in freq2.items():
@@ -43,6 +57,11 @@ def calculate_idf(king_agent, freq1: dict, freq2: dict):
 
 
 def get_seconds(time: str):
+    """
+    calculates the seconds of a time
+    :param time: the time as str 'hh:mm:ss'
+    :return: returns time as seconds
+    """
     s = time.split(':')
     seconds = float(s[2]) + float(s[1]) * 60 + float(s[0]) * 3600
     return seconds

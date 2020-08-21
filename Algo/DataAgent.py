@@ -13,6 +13,14 @@ class DataAgent:
     terms_global_frequency = 0
 
     def __init__(self, data_file_path, count: int, epsilon=1e-7, is_twitter=True):
+        """
+        the object that handles data loading and processing
+        :param data_file_path: the path where our data is at
+        :param count: the amount of the data we want to process
+        :param epsilon: Float
+        :param is_twitter: Boolean
+        :return: None
+        """
         self.data_file_path = data_file_path
         self.is_twitter = is_twitter
         self.epsilon = epsilon
@@ -26,15 +34,31 @@ class DataAgent:
         self.load_data(data_file_path, count=count)
 
     def load_data(self, file_path: str, count: int) -> None:
+        """
+        read the df of our dps
+        :param file_path: the dir where our input data is at
+        :param count: how many of the data we want
+        :return: None
+        """
         self.raw_data = pd.read_pickle(file_path).reset_index().head(count)
 
     def get_dp(self, dp: pd.DataFrame):
+        """
+        call the function to turn the df to our dp object
+        :param dp: one dp with format data frame
+        :return: object dp
+        """
         if self.is_twitter:
             return self.get_twitter_dp(dp)
         else:
             return self.get_reuters_dp(dp)
 
     def get_twitter_dp(self, dp: pd.DataFrame) -> TwitterDataPoint:
+        """
+        turns one twitter data point's data-frame to our recognizable object dp
+        :param dp: one twitter dp with format data frame
+        :return: object twitter dp
+        """
         tweet = dp['text'].values[0]
 
         # Extracting Data
@@ -57,6 +81,11 @@ class DataAgent:
         )
 
     def get_reuters_dp(self, dp: pd.DataFrame) -> ReutersDataPoint:
+        """
+        turns one reuters data point's data-frame to our recognizable object dp
+        :param dp: one reuters dp with format data frame
+        :return: object reuters dp
+        """
         tweet = dp['TEXT'].values[0]
 
         # Extracting Data
@@ -75,6 +104,11 @@ class DataAgent:
         )
 
     def get_freq_dict(self, tweet: str) -> dict:
+        """
+        turns the tweet text in to its token ids with their frequencies
+        :param tweet: the text of the tweet
+        :return: a dict of {token_id:frequency}
+        """
         tweet_tokens = tweet.split()
 
         freq_dict = {}
@@ -91,6 +125,10 @@ class DataAgent:
         return freq_dict
 
     def get_next_dp(self):
+        """
+        call the func to read the next dp
+        :return: the object of the dp
+        """
         if DataAgent.current_dp_index >= self.count:
             print('Finished')
             return None
@@ -101,4 +139,8 @@ class DataAgent:
             return dp
 
     def has_next_dp(self):
+        """
+        check if we are not exceeding our maximum dps to process threshold
+        :return: Boolean
+        """
         return not (DataAgent.current_dp_index >= self.count)

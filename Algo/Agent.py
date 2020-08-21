@@ -8,7 +8,12 @@ class Agent:
     epsilon = 1e-7
 
     def __init__(self, king_agent, generic_distance_function: Callable):
-
+        """
+        the object of agent where the properties of the agent are kept
+        :param king_agent: the object of the KingAgent so we have access to global variables
+        :param generic_distance_function: the distance function we want to use
+        :return: None
+        """
         self.agent_id = Agent.agent_id
         self.outlier_threshold = king_agent.outlier_threshold
         Agent.agent_id += 1
@@ -20,8 +25,8 @@ class Agent:
 
     def add_data_point(self, dp) -> None:
         """
-        Adding data point to the agent
-        :param dp: data point We want to add to the Agent
+        adding dp to the agent
+        :param dp: dp we want to add to the agent
         :return: None
         """
         self.weight += 1
@@ -38,6 +43,12 @@ class Agent:
         self.king_agent.dp_id_to_agent_id[dp.dp_id] = self.agent_id
 
     def update_global_tf(self, frequency, token_id):
+        """
+        update the global term frequencies when adding a new data point
+        :param frequency: the amount added
+        :param token_id: the id of the word added
+        :return: None
+        """
         if token_id in self.king_agent.data_agent.global_freq:
             self.king_agent.data_agent.global_freq[token_id] += frequency
             self.king_agent.data_agent.terms_global_frequency += frequency
@@ -47,8 +58,8 @@ class Agent:
 
     def remove_data_point(self, dp_id: int, outlier=False) -> None:
         """
-        Removing data point from agent
-        :param dp_id: Data Point id
+        removing data point from agent
+        :param dp_id: dp id
         :param outlier : Boolean
         :return: None
         """
@@ -80,8 +91,9 @@ class Agent:
 
     def fade_agent_weight(self, fade_rate: float, delete_faded_threshold: float) -> None:
         """
-        Fading Agent Weight
-        :param fade_rate: float number between 0 and 1
+        fade an agent's weight
+        :param fade_rate: the amount to be faded
+        :param delete_faded_threshold: delete the agent if it's weight gets less than this threshold
         :return: None
         """
         if abs(fade_rate) < 1e-9:
@@ -94,34 +106,9 @@ class Agent:
                 if self.weight < delete_faded_threshold:
                     self.king_agent.remove_agent(self.agent_id)
 
-    def fade_agent_tfs(self, fade_rate: float, delete_faded_threshold: float) -> None:
-        """
-        Fading Agent Weight
-        :param fade_rate: float number between 0 and 1
-        :param delete_faded_threshold:
-        :return: None
-        """
-        if abs(fade_rate) < 1e-9:
-            pass
-        else:
-            if fade_rate > 1 or fade_rate < 0 or delete_faded_threshold > 1 or delete_faded_threshold < 0:
-                raise Exception(f'Invalid Fade Rate or delete_faded_threshold : {fade_rate, delete_faded_threshold}')
-            else:
-                agent_global_f = dict()
-                for token_id in self.agent_f:
-                    new_f = self.agent_f[token_id] * (1 - fade_rate)
-                    if new_f > delete_faded_threshold:
-                        agent_global_f[token_id] = new_f
-                    else:
-                        self.king_agent.global_idf_count[token_id] -= 1
-                        if self.king_agent.global_idf_count[token_id] == 0:
-                            del self.king_agent.global_idf_count[token_id]
-
-                self.agent_f = agent_global_f
-
     def get_outliers(self, out) -> None:
         """
-        Getting outliers of agent
+        getting outliers of agent
         :return: list of ids of outliers
         """
         outliers_id = []
@@ -134,9 +121,19 @@ class Agent:
         out.extend(outliers_id)
 
     def get_distance(self, king_agent, f: dict):
+        """
+        calls the function that finds the distance
+        :param king_agent: the object of KingAgent
+        :param f: a dictionary of term frequencies {token_id:frequency} of the dp
+        :return: (int) returns the distance of the dp and this agent
+        """
         return self.generic_distance_function(king_agent, f, self.agent_f)
 
     def handle_old_dps(self):
+        """
+        deletes the dps that are older than clean_up_step time interval
+        :return: None
+        """
         for dp_id in self.dp_ids:
             dp = self.king_agent.data_agent.data_points[dp_id]
             if abs((dp.created_at - self.king_agent.current_date).total_seconds()) > get_seconds(
