@@ -32,10 +32,7 @@ def calculate_idf(king_agent, freq1: dict, freq2: dict):
     idf_dictionary = dict()
     freq = copy.deepcopy(freq1)
     for token_id, f1 in freq2.items():
-        if token_id in freq:
-            freq[token_id] += freq2[token_id]
-        else:
-            freq[token_id] = freq2[token_id]
+        freq[token_id] = freq.get(token_id, 0) + freq2[token_id]
 
     for token_id_1, frequency_1 in freq.items():
         counter = 1 + king_agent.global_idf_count.get(token_id_1, 0)

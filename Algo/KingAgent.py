@@ -11,6 +11,7 @@ import heapq
 from threading import Thread
 from DataAgent import DataAgent
 from pathlib import Path
+import logging
 
 
 class KingAgent:
@@ -34,7 +35,7 @@ class KingAgent:
                  data_file_path: str,
                  is_twitter=False,
                  generic_distance=get_distance_tf_idf_cosine,
-                 verbose=False):
+                 verbose=0):
 
         pattern = re.compile(r'^[0-9]+:[0-9]{2}:[0-9]{2}$')
         are_invalid_steps = len(pattern.findall(communication_step)) != 1 or len(pattern.findall(clean_up_step)) != 1
@@ -52,7 +53,7 @@ class KingAgent:
         self.max_topic_count = max_topic_count
         self.outlier_threshold = outlier_threshold
         self.top_n = top_n
-        self.clean_up_delta_time = clean_up_step
+        self.clean_up_step = clean_up_step
         self.data_agent = DataAgent(data_file_path=data_file_path, count=dp_count, is_twitter=is_twitter)
         self.generic_distance_function = generic_distance
         self.dp_id_to_agent_id = dict()
@@ -60,6 +61,8 @@ class KingAgent:
         self.first_communication_residual = None
         self.first_save_output_residual = None
         self.verbose = verbose
+        if verbose != 0:
+            self.logger = logging.getLogger('my-logger')
 
     def create_agent(self) -> int:
         agent = Agent(self, generic_distance_function=self.generic_distance_function)
@@ -135,6 +138,8 @@ class KingAgent:
             if agents_dict[random_agent_id] == 0:
                 del agents_dict[random_agent_id]
         del agents_dict
+        if self.verbose == 1:
+            self.logger.info(msg=f'WarmUp done : Number of agents : {len(self.agents)}')
 
     def stream(self, dp):
         min_distance = float('infinity')
@@ -155,13 +160,11 @@ class KingAgent:
             agent = self.agents[agent_id]
             agent.fade_agent_weight(self.fading_rate, self.delete_faded_threshold)
 
-    def fade_agents_tfs(self):
-        for agent_id in list(self.agents.keys()):
-            agent = self.agents[agent_id]
-            agent.fade_agent_tfs(self.fading_rate, self.delete_faded_threshold)
-            # removing very small tf's happens in fade_agent_tfs too
-
     def handle_old_dps(self):
+        """
+            Removing old data points
+            :return: None
+        """
         for agent_id, agent in self.agents.items():
             agent.handle_old_dps()
 
@@ -182,7 +185,7 @@ class KingAgent:
                     KingAgent.current_date += pd.Timedelta(seconds=1)
 
                     # communication every interval
-                    self.clean_up()
+                    self.communicate()
 
                     # save output every interval
                     self.save()
@@ -192,32 +195,31 @@ class KingAgent:
                     KingAgent.prev_date = dp.created_at
                     flag = False
 
-        self.save_everything()
+        self.handle_old_dps()
+        self.handle_outliers()
+        self.save_model_and_files()
 
-    def clean_up(self):
+    def communicate(self):
         communication_residual = (time.mktime(
             KingAgent.current_date.timetuple()) - self.first_communication_residual) % get_seconds(
             self.communication_step)
         if abs(communication_residual) <= 1e-7:
-            self.communicate()
-
-    def communicate(self):
-        self.handle_old_dps()
-        self.handle_outliers()
-        self.fade_agents_weight()
-        print(f'{KingAgent.current_date}: cleaned_up')
+            self.handle_old_dps()
+            self.handle_outliers()
+            self.fade_agents_weight()
+        if self.verbose != 0:
+            self.logger.info(msg=f'Communicating -> Number of agents : {len(self.agents)} , Date: {self.current_date}')
 
     def save(self):
         save_output_residual = (time.mktime(
             KingAgent.current_date.timetuple()) - self.first_save_output_residual) % get_seconds(
             self.save_output_interval)
         if abs(save_output_residual) <= 1e-7:
-            self.save_everything()
+            self.handle_old_dps()
+            self.handle_outliers()
+            self.save_model_and_files()
 
-    def save_everything(self):
-        self.handle_old_dps()
-        self.handle_outliers()
-
+    def save_model_and_files(self):
         self.save_model(
             os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
@@ -234,7 +236,9 @@ class KingAgent:
             os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
                              KingAgent.dp_counter), 'clusters_tweet_ids'))
-        print(f'{KingAgent.current_date}: saved')
+        if self.verbose == 1:
+            self.logger.info(
+                msg=f'Save Model and Outputs -> Number of agents : {len(self.agents)} , Date: {self.current_date}')
 
     def save_model(self, parent_dir):
         if not os.path.exists(parent_dir):

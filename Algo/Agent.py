@@ -54,7 +54,6 @@ class Agent:
         """
         try:
             self.dp_ids.remove(dp_id)
-            # self.weight -= 1
             if self.weight <= 0:
                 self.weight = 0
             for token_id, frequency in self.king_agent.data_agent.data_points[dp_id].freq.items():
@@ -140,5 +139,5 @@ class Agent:
         for dp_id in self.dp_ids:
             dp = self.king_agent.data_agent.data_points[dp_id]
             if abs((dp.created_at - self.king_agent.current_date).total_seconds()) > get_seconds(
-                    self.king_agent.clean_up_delta_time):
+                    self.king_agent.clean_up_step):
                 self.remove_data_point(dp_id)
