@@ -11,17 +11,13 @@ import heapq
 from threading import Thread
 from DataAgent import DataAgent
 from pathlib import Path
-import copy
 
 
 class KingAgent:
     current_date = pd.to_datetime('2020-03-29T00:00:00Z')
     prev_date = pd.to_datetime('2020-03-28T00:00:00Z')
 
-    prev_residual = 0
-    save_output_prev_residual = 0
-    date = pd.to_datetime('2000-01-29T00:00:00Z')
-    dp_now = 0
+    dp_counter = 0
 
     def __init__(self,
                  save_output_interval: str,
@@ -37,7 +33,8 @@ class KingAgent:
                  delete_faded_threshold: float,
                  data_file_path: str,
                  is_twitter=False,
-                 generic_distance=get_distance_tf_idf_cosine):
+                 generic_distance=get_distance_tf_idf_cosine,
+                 verbose=False):
 
         pattern = re.compile(r'^[0-9]+:[0-9]{2}:[0-9]{2}$')
         are_invalid_steps = len(pattern.findall(communication_step)) != 1 or len(pattern.findall(clean_up_step)) != 1
@@ -62,6 +59,7 @@ class KingAgent:
         self.global_idf_count = {}
         self.first_communication_residual = None
         self.first_save_output_residual = None
+        self.verbose = verbose
 
     def create_agent(self) -> int:
         agent = Agent(self, generic_distance_function=self.generic_distance_function)
@@ -170,13 +168,13 @@ class KingAgent:
     def train(self):
         self.warm_up()
         self.handle_outliers()
-        KingAgent.dp_now = self.max_topic_count * self.alpha
+        KingAgent.dp_counter = self.max_topic_count * self.alpha
         while self.data_agent.has_next_dp():
             dp = self.data_agent.get_next_dp()
-            if (KingAgent.dp_now + 1) % 1000 == 0:
+            if (KingAgent.dp_counter + 1) % 1000 == 0:
                 print(
-                    f'{KingAgent.current_date}: data point count = {KingAgent.dp_now + 1} number of agents : {len(self.agents)}')
-            KingAgent.dp_now += 1
+                    f'{KingAgent.current_date}: data point count = {KingAgent.dp_counter + 1} number of agents : {len(self.agents)}')
+            KingAgent.dp_counter += 1
             flag = True
             while flag:
 
@@ -202,7 +200,6 @@ class KingAgent:
             self.communication_step)
         if abs(communication_residual) <= 1e-7:
             self.communicate()
-        KingAgent.prev_residual = communication_residual
 
     def communicate(self):
         self.handle_old_dps()
@@ -216,7 +213,6 @@ class KingAgent:
             self.save_output_interval)
         if abs(save_output_residual) <= 1e-7:
             self.save_everything()
-        KingAgent.save_output_prev_residual = save_output_residual
 
     def save_everything(self):
         self.handle_old_dps()
@@ -225,19 +221,19 @@ class KingAgent:
         self.save_model(
             os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
-                             KingAgent.dp_now), 'model'))
+                             KingAgent.dp_counter), 'model'))
         self.write_output_to_files(
             os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
-                             KingAgent.dp_now), 'clusters'))
+                             KingAgent.dp_counter), 'clusters'))
         self.write_topics_to_files(
             os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
-                             KingAgent.dp_now), 'topics'), 5)
+                             KingAgent.dp_counter), 'topics'), 5)
         self.write_tweet_ids_to_files(
             os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
-                             KingAgent.dp_now), 'clusters_tweet_ids'))
+                             KingAgent.dp_counter), 'clusters_tweet_ids'))
         print(f'{KingAgent.current_date}: saved')
 
     def save_model(self, parent_dir):

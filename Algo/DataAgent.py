@@ -46,7 +46,6 @@ class DataAgent:
         created_at = pd.to_datetime(dp['created_at'].values[0])
         is_verified = dp['verified'].values[0]
         favourites_count = dp['favourites_count'].values[0]
-        # retweet_count = dp['retweet_count'].values[0]
         retweet_count = 1
 
         return TwitterDataPoint(

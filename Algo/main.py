@@ -6,8 +6,8 @@ if __name__ == '__main__':
     os.chdir('..')
     data_path = os.path.join(os.getcwd(), 'Data/data_cleaned.pkl')
     king = KingAgent(max_topic_count=5,
-                     save_output_interval="24:00:00",
-                     communication_step="02:00:00",
+                     save_output_interval="00:02:00",
+                     communication_step="00:01:00",
                      clean_up_step="24:00:00",
                      radius=0.75,  # 75 for reuters
                      alpha=2,

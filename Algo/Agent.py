@@ -49,6 +49,7 @@ class Agent:
         """
         Removing data point from agent
         :param dp_id: Data Point id
+        :param outlier : Boolean
         :return: None
         """
         try:
@@ -138,6 +139,6 @@ class Agent:
     def handle_old_dps(self):
         for dp_id in self.dp_ids:
             dp = self.king_agent.data_agent.data_points[dp_id]
-            if abs((dp.created_at - self.king_agent.date).total_seconds()) > get_seconds(
+            if abs((dp.created_at - self.king_agent.current_date).total_seconds()) > get_seconds(
                     self.king_agent.clean_up_delta_time):
                 self.remove_data_point(dp_id)
