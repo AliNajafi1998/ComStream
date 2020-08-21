@@ -175,25 +175,24 @@ class KingAgent:
             dp = self.data_agent.get_next_dp()
             if (KingAgent.dp_now + 1) % 1000 == 0:
                 print(
-                    f'data point count = {KingAgent.dp_now + 1} number of agents : {len(self.agents)}, time: {KingAgent.current_date}')
+                    f'{KingAgent.current_date}: data point count = {KingAgent.dp_now + 1} number of agents : {len(self.agents)}')
             KingAgent.dp_now += 1
             flag = True
             while flag:
 
-                if str(dp.created_at) != str(KingAgent.prev_date):
+                if dp.created_at != KingAgent.prev_date:
                     KingAgent.current_date += pd.Timedelta(seconds=1)
-                    print('XXX')
+
+                    # communication every interval
+                    self.clean_up()
+
+                    # save output every interval
+                    self.save()
 
                 if dp.created_at <= KingAgent.current_date:
                     self.stream(dp)
                     KingAgent.prev_date = dp.created_at
                     flag = False
-
-                # communication every interval
-                self.clean_up()
-
-                # save output every interval
-                self.save()
 
         self.save_everything()
 
@@ -201,8 +200,7 @@ class KingAgent:
         communication_residual = (time.mktime(
             KingAgent.current_date.timetuple()) - self.first_communication_residual) % get_seconds(
             self.communication_step)
-        print()
-        if abs(communication_residual - KingAgent.prev_residual) <= 1e-7:
+        if abs(communication_residual) <= 1e-7:
             self.communicate()
         KingAgent.prev_residual = communication_residual
 
@@ -210,13 +208,13 @@ class KingAgent:
         self.handle_old_dps()
         self.handle_outliers()
         self.fade_agents_weight()
-        print(f'cleaned up: {KingAgent.current_date}')
+        print(f'{KingAgent.current_date}: cleaned_up')
 
     def save(self):
         save_output_residual = (time.mktime(
             KingAgent.current_date.timetuple()) - self.first_save_output_residual) % get_seconds(
             self.save_output_interval)
-        if abs(save_output_residual - KingAgent.save_output_prev_residual) <= 1e-7:
+        if abs(save_output_residual) <= 1e-7:
             self.save_everything()
         KingAgent.save_output_prev_residual = save_output_residual
 
@@ -240,7 +238,7 @@ class KingAgent:
             os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
                              KingAgent.dp_now), 'clusters_tweet_ids'))
-        print(f'saved: {KingAgent.current_date}')
+        print(f'{KingAgent.current_date}: saved')
 
     def save_model(self, parent_dir):
         if not os.path.exists(parent_dir):
