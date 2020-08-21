@@ -98,6 +98,7 @@ class Agent:
         """
         Fading Agent Weight
         :param fade_rate: float number between 0 and 1
+        :param delete_faded_threshold:
         :return: None
         """
         if abs(fade_rate) < 1e-9:

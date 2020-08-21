@@ -22,7 +22,8 @@ if __name__ == '__main__':
                      # delete_faded_threshold=0.0,
                      generic_distance=get_distance_tf_idf_cosine,
                      is_twitter=True,
-                     data_file_path=data_path
+                     data_file_path=data_path,
+                     verbose=1
                      )
     os.chdir('./Algo')
     king.train()

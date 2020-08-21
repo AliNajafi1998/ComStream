@@ -11,7 +11,7 @@ import heapq
 from threading import Thread
 from DataAgent import DataAgent
 from pathlib import Path
-import logging
+from colorama import Fore
 
 
 class KingAgent:
@@ -36,7 +36,10 @@ class KingAgent:
                  is_twitter=False,
                  generic_distance=get_distance_tf_idf_cosine,
                  verbose=0):
-
+        """
+        :param save_output_interval :
+        :return
+        """
         pattern = re.compile(r'^[0-9]+:[0-9]{2}:[0-9]{2}$')
         are_invalid_steps = len(pattern.findall(communication_step)) != 1 or len(pattern.findall(clean_up_step)) != 1
 
@@ -61,8 +64,6 @@ class KingAgent:
         self.first_communication_residual = None
         self.first_save_output_residual = None
         self.verbose = verbose
-        if verbose != 0:
-            self.logger = logging.getLogger('my-logger')
 
     def create_agent(self) -> int:
         agent = Agent(self, generic_distance_function=self.generic_distance_function)
@@ -139,7 +140,7 @@ class KingAgent:
                 del agents_dict[random_agent_id]
         del agents_dict
         if self.verbose == 1:
-            self.logger.info(msg=f'WarmUp done : Number of agents : {len(self.agents)}')
+            print(f'WarmUp done : Number of agents : {len(self.agents)}')
 
     def stream(self, dp):
         min_distance = float('infinity')
@@ -174,9 +175,10 @@ class KingAgent:
         KingAgent.dp_counter = self.max_topic_count * self.alpha
         while self.data_agent.has_next_dp():
             dp = self.data_agent.get_next_dp()
-            if (KingAgent.dp_counter + 1) % 1000 == 0:
-                print(
-                    f'{KingAgent.current_date}: data point count = {KingAgent.dp_counter + 1} number of agents : {len(self.agents)}')
+            if self.verbose != 0:
+                if (KingAgent.dp_counter + 1) % 1000 == 0:
+                    print(
+                        f'{Fore.CYAN}{KingAgent.current_date} : data point count = {KingAgent.dp_counter + 1} number of agents : {len(self.agents)}')
             KingAgent.dp_counter += 1
             flag = True
             while flag:
@@ -207,8 +209,8 @@ class KingAgent:
             self.handle_old_dps()
             self.handle_outliers()
             self.fade_agents_weight()
-        if self.verbose != 0:
-            self.logger.info(msg=f'Communicating -> Number of agents : {len(self.agents)} , Date: {self.current_date}')
+            if self.verbose != 0:
+                print(f'{Fore.BLUE}{self.current_date} : Communicating -> Number of agents : {len(self.agents)}')
 
     def save(self):
         save_output_residual = (time.mktime(
@@ -237,8 +239,7 @@ class KingAgent:
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
                              KingAgent.dp_counter), 'clusters_tweet_ids'))
         if self.verbose == 1:
-            self.logger.info(
-                msg=f'Save Model and Outputs -> Number of agents : {len(self.agents)} , Date: {self.current_date}')
+            print(f'{Fore.YELLOW}{self.current_date} : Save Model and Outputs -> Number of agents : {len(self.agents)}')
 
     def save_model(self, parent_dir):
         if not os.path.exists(parent_dir):
