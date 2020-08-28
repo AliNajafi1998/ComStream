@@ -30,6 +30,7 @@ class KingAgent:
                  outlier_threshold: float,
                  top_n: int,
                  dp_count: int,
+                 max_keyword_per_agent: int,
                  fading_rate: float,
                  delete_faded_threshold: float,
                  data_file_path: str,
@@ -48,7 +49,7 @@ class KingAgent:
         :param alpha: number of initial dps per agent
         :param outlier_threshold: if in outlier detection a dps distance from agent is more than outlier_threshold,
         reassign the dp
-        :param top_n: the maximum number of topics we will save for each agent in the files
+        :param top_n: the maximum number of outliers we will re-assign in each clean up
         :param dp_count: the maximum number of dps to process in the algorithm
         :param fading_rate: the percentile of each agents weight that gets faded in each clean up
         :param delete_faded_threshold: in each clean up step, if any agents weight is less than this threshold,
@@ -75,6 +76,7 @@ class KingAgent:
         self.max_topic_count = max_topic_count
         self.outlier_threshold = outlier_threshold
         self.top_n = top_n
+        self.max_keyword_per_agent = max_keyword_per_agent
         self.clean_up_step = clean_up_step
         self.data_agent = DataAgent(data_file_path=data_file_path, count=dp_count, is_twitter=is_twitter)
         self.generic_distance_function = generic_distance
@@ -165,9 +167,9 @@ class KingAgent:
             dp = self.data_agent.get_next_dp()
             if flag:
                 self.first_communication_residual = time.mktime(KingAgent.current_date.timetuple()) % get_seconds(
-                    self.communication_step) - 1
+                    self.communication_step) - 0
                 self.first_save_output_residual = time.mktime(KingAgent.current_date.timetuple()) % get_seconds(
-                    self.save_output_interval) - 1
+                    self.save_output_interval) - 0
                 flag = False
             KingAgent.current_date = dp.created_at
             KingAgent.prev_date = dp.created_at
@@ -285,10 +287,10 @@ class KingAgent:
         save the model, agent dps texts, agent dps ids, agent top topics
         :return: None
         """
-        self.save_model(
-            os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
-                         'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
-                             KingAgent.dp_counter), 'model'))
+        # self.save_model(
+        #     os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+        #                  'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
+        #                      KingAgent.dp_counter), 'model'))
         self.write_output_to_files(
             os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
@@ -296,7 +298,7 @@ class KingAgent:
         self.write_topics_to_files(
             os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
-                             KingAgent.dp_counter), 'topics'), 5)
+                             KingAgent.dp_counter), 'topics'), self.max_keyword_per_agent)
         self.write_tweet_ids_to_files(
             os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
@@ -336,9 +338,11 @@ class KingAgent:
         if not os.path.exists(parent_dir):
             os.makedirs(parent_dir)
         for agent_id, topics in agent_topics.items():
+            key_words_str = ''
+            for item in topics:
+                key_words_str += str(self.data_agent.id_to_token[item[0]]) + ' '
             with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w', encoding='utf8') as file:
-                for item in topics:
-                    file.write(f'{self.data_agent.id_to_token[item[0]]} : {str(item[1])}\n')
+                file.write(key_words_str)
 
     def write_output_to_files(self, parent_dir):
         """
