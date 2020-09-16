@@ -29,6 +29,7 @@ class Evaluate:
         self.topic_recall()
         self.keyword_precision()
         self.keyword_recall()
+        self.f_score()
 
     def get_truth_topics(self):
         day_topics_keywords = []
@@ -119,7 +120,7 @@ class Evaluate:
         # print(self.no_found_truth_topics, self.no_truth_topics)
 
     def topic_recall(self):
-        print('topic_recall  |  keyword_precision  |  keyword_recall')
+        print('topic_recall  |  keyword_precision  |  keyword_recall  |  keyword_F_score')
         tr = self.no_found_truth_topics / self.no_truth_topics
         print("%.2f (%d/%d)" % (tr, self.no_found_truth_topics, self.no_truth_topics), end='  |  ')
 
@@ -129,12 +130,13 @@ class Evaluate:
 
     def keyword_recall(self):
         kr = self.no_found_truth_keywords / self.no_truth_keyword
-        print("%.2f (%d/%d)" % (kr, self.no_found_truth_keywords, self.no_truth_keyword))
-        self.no_truth_keyword = 0
-        self.no_found_truth_keywords = 0
+        print("%.2f (%d/%d)" % (kr, self.no_found_truth_keywords, self.no_truth_keyword), end='  |  ')
 
     def f_score(self):
-        pass
+        kr = self.no_found_truth_keywords / self.no_truth_keyword
+        kp = self.no_found_prediction_keywords / self.no_prediction_keyword
+
+        print("%.2f " % ((2 * kr * kp) / (kp + kr)))
 
     @staticmethod
     def remove_brackets_from_word(word):
@@ -149,7 +151,7 @@ if __name__ == '__main__':
     # 'C:/Users/shila/Desktop/covid-stream/Data/outputs/other_topics/LDA'
     # 'C:/Users/shila/Desktop/covid-stream/Data/outputs/multi_agent_topics'
     EV = Evaluate(truth_dir='C:/Users/shila/Desktop/covid-stream/Data/corona_truth',
-                  predicted_dir='C:/Users/shila/Desktop/covid-stream/Data/outputs/other_topics/LDA',
+                  predicted_dir='C:/Users/shila/Desktop/covid-stream/Data/outputs/multi_agent_topics',
                   top_n_topics=5,
                   top_n_keywords=10,
                   assigning_keyword_threshold=2
