@@ -2,12 +2,7 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from sklearn.feature_extraction.text import TfidfVectorizer
-import spacy
-import pytextrank
-import pandas as pd
-import gensim
 from datetime import datetime
-from gensim import corpora, models
 
 
 class TopicExtractor:
