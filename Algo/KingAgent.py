@@ -30,7 +30,7 @@ class KingAgent:
                  outlier_threshold: float,
                  top_n: int,
                  dp_count: int,
-                 max_keyword_per_agent: int,
+                 saved_max_keyword_per_agent: int,
                  fading_rate: float,
                  delete_faded_threshold: float,
                  data_file_path: str,
@@ -39,21 +39,18 @@ class KingAgent:
                  verbose=0):
         """
         the class where every agent and dp is managed
-        :param save_output_interval: the time interval in which we will save our agents, agents with tweet id's, models,
-        topics
+        :param save_output_interval: the time interval in which we will save our model, agents, agent keywords and agents with their dp's tweet ids
         :param max_topic_count: starting number of agents
-        :param communication_step: the time interval in which the algorithm will communicate for deleting old dps,
-        handle outliers, fading agents weight
+        :param communication_step: the time interval in which the algorithm will communicate for deleting old dps,handling outliers, fading agents weight
         :param clean_up_step: the time interval in which the dp is considered an old dp
-        :param radius: a dp is assigned to the closest agent if the distance is less than radius (1-similarity)
-        :param alpha: number of initial dps per agent
-        :param outlier_threshold: if in outlier detection a dps distance from agent is more than outlier_threshold,
-        reassign the dp
+        :param radius: a dp is assigned to the closest agent if the distance is less than radius
+        :param alpha: the initial number of dps per agent
+        :param outlier_threshold: if in outlier detection, a dp's distance from agent is more than outlier_threshold, reassign that dp
         :param top_n: the maximum number of outliers we will re-assign in each clean up
         :param dp_count: the maximum number of dps to process in the algorithm
-        :param fading_rate: the percentile of each agents weight that gets faded in each clean up
-        :param delete_faded_threshold: in each clean up step, if any agents weight is less than this threshold,
-        the agent gets deleted
+        :param saved_max_keyword_per_agent: the number of keywords we want to save each time save_output_interval happens
+        :param fading_rate: the percentile of each agents weight that gets faded in each clean up (range: 0.0-1.0)
+        :param delete_faded_threshold: in each clean up step, if any agents weight is less than this threshold, the agent gets deleted
         :param data_file_path: the path of the input data
         :param is_twitter: if the data is twitter True, else False
         :param generic_distance: the type of our distance metric
@@ -76,7 +73,7 @@ class KingAgent:
         self.max_topic_count = max_topic_count
         self.outlier_threshold = outlier_threshold
         self.top_n = top_n
-        self.max_keyword_per_agent = max_keyword_per_agent
+        self.saved_max_keyword_per_agent = saved_max_keyword_per_agent
         self.clean_up_step = clean_up_step
         self.data_agent = DataAgent(data_file_path=data_file_path, count=dp_count, is_twitter=is_twitter)
         self.generic_distance_function = generic_distance
@@ -298,7 +295,7 @@ class KingAgent:
         self.write_topics_to_files(
             os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
-                             KingAgent.dp_counter), 'topics'), self.max_keyword_per_agent)
+                             KingAgent.dp_counter), 'topics'), self.saved_max_keyword_per_agent)
         self.write_tweet_ids_to_files(
             os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
