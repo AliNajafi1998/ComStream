@@ -4,22 +4,19 @@ import os
 
 if __name__ == '__main__':
     os.chdir('..')
-    data_path = os.path.join(os.getcwd(), 'Data/data_cleaned.pkl')
+    data_path = os.path.join(os.getcwd(), 'Data/FA/FACUP.pkl')
     king = KingAgent(max_topic_count=5,
-                     save_output_interval="00:02:00",
+                     save_output_interval="00:01:00",
                      communication_step="00:01:00",
-                     clean_up_step="24:00:00",
-                     radius=0.75,  # 75 for reuters
+                     clean_up_step="00:02:00",
+                     radius=0.70,  # 75 for reuters
                      alpha=2,
-                     outlier_threshold=0.80,
-                     top_n=4,
-                     dp_count=700000,
-                     # fading_rate=1-0.2,  # it gets: w*= 1-fading_rate, 0.9 remains if it is 0.1
-                     # delete_faded_threshold=0.70,
-                     fading_rate=1 - 0.33,  # it gets: w*= 1-fading_rate, 0.9 remains if it is 0.1
-                     delete_faded_threshold=0.50,
-                     # fading_rate=0.0,  # it gets: w*= 1-fading_rate, 0.66 remains if it is 0.33
-                     # delete_faded_threshold=0.0,
+                     outlier_threshold=0.73,
+                     top_n=100,
+                     dp_count=1000000,
+                     max_keyword_per_agent=5,
+                     fading_rate=0.0,  # fading_rate amount gets faded # 0.5
+                     delete_faded_threshold=0.0, # 0.4
                      generic_distance=get_distance_tf_idf_cosine,
                      is_twitter=True,
                      data_file_path=data_path,
