@@ -9,7 +9,6 @@ import os
 from math import log
 from threading import Thread
 from Algo.DataAgent import DataAgent
-from pathlib import Path
 from colorama import Fore
 
 
@@ -34,7 +33,9 @@ class KingAgent:
                  delete_agent_weight_threshold: float,
                  data_file_path: str,
                  generic_distance=get_distance_tf_idf_cosine,
-                 verbose=0):
+                 data_start_date=pd.to_datetime('2020-03-29T00:00:00Z'),
+                 verbose=0
+                 ):
         """
         the class where every agent and dp is managed
         :param save_output_interval: the time interval in which we will save our model, agents, agent keywords and
@@ -55,6 +56,7 @@ class KingAgent:
             the agent gets deleted
         :param data_file_path: the path of the input data
         :param generic_distance: the type of our distance metric
+        :data_start_date: created_at of first tweet
         :param verbose: 0 doesn't keep logs, 1 keeps logs
         :return: None
         """
@@ -83,6 +85,8 @@ class KingAgent:
         self.first_communication_residual = None
         self.first_save_output_residual = None
         self.verbose = verbose
+        KingAgent.current_date = data_start_date
+        KingAgent.prev_date = KingAgent.current_date + pd.Timedelta(days=-1)
 
     def create_agent(self) -> int:
         """
@@ -172,7 +176,7 @@ class KingAgent:
                 del agents_dict[random_agent_id]
         del agents_dict
         if self.verbose == 1:
-            print(f'WarmUp done : Number of agents : {len(self.agents)}')
+            print(f'Init_agents done : Number of agents : {len(self.agents)}')
 
     def stream(self, dp):
         """
@@ -280,20 +284,20 @@ class KingAgent:
         save the model, agent dps texts, agent dps ids, agent top topics
         :return: None
         """
-        # self.save_model(
-        #     os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
-        #                  'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
-        #                      KingAgent.dp_counter), 'model'))
+        self.save_model(
+            os.path.join(os.getcwd(), 'outputs/multi_agent',
+                         'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
+                             KingAgent.dp_counter), 'model'))
         self.write_output_to_files(
-            os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+            os.path.join(os.getcwd(), 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
                              KingAgent.dp_counter), 'clusters'))
         self.write_topics_to_files(
-            os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+            os.path.join(os.getcwd(), 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
                              KingAgent.dp_counter), 'topics'))
         self.write_tweet_ids_to_files(
-            os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
+            os.path.join(os.getcwd(), 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
                              KingAgent.dp_counter), 'clusters_tweet_ids'))
         if self.verbose == 1:
@@ -346,8 +350,8 @@ class KingAgent:
         for agent_id, agent in self.agents.items():
             with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w', encoding='utf8') as file:
                 for dp_id in agent.dp_ids:
-                    dp_df = self.data_agent.raw_data.iloc[[self.data_agent.data_points[dp_id].index_in_df]]
-                    file.write(str(dp_df['text'].values[0]) + '\n\n')
+                    tweet = self.data_agent.data_points[dp_id].tweet
+                    file.write(f'{tweet}\n\n')
 
     def write_tweet_ids_to_files(self, parent_dir):
         """

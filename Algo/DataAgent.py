@@ -65,6 +65,7 @@ class DataAgent:
         retweet_count = 1
 
         return TwitterDataPoint(
+            tweet=tweet,
             freq=freq_dict, time_stamp=time_stamp,
             user_id=user_id, status_id=status_id,
             created_at=created_at, is_verified=is_verified,
