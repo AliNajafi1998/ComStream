@@ -7,7 +7,6 @@ import pickle
 import pandas as pd
 import os
 from math import log
-import heapq
 from threading import Thread
 from Algo.DataAgent import DataAgent
 from pathlib import Path
@@ -34,7 +33,6 @@ class KingAgent:
                  agent_fading_rate: float,
                  delete_agent_weight_threshold: float,
                  data_file_path: str,
-                 is_twitter=False,
                  generic_distance=get_distance_tf_idf_cosine,
                  verbose=0):
         """
@@ -56,7 +54,6 @@ class KingAgent:
         :param delete_agent_weight_threshold: in each clean up step, if any agents weight is less than this threshold,
             the agent gets deleted
         :param data_file_path: the path of the input data
-        :param is_twitter: if the data is twitter True, else False
         :param generic_distance: the type of our distance metric
         :param verbose: 0 doesn't keep logs, 1 keeps logs
         :return: None
@@ -68,7 +65,6 @@ class KingAgent:
         if are_invalid_steps:
             raise Exception(f'Invalid inputs fot steps')
         self.save_output_interval = save_output_interval
-        self.is_twitter = is_twitter
         self.agents = {}
         self.radius = radius
         self.agent_fading_rate = agent_fading_rate
@@ -80,7 +76,7 @@ class KingAgent:
         self.max_no_keywords = max_no_keywords
         self.max_no_topics = max_no_topics
         self.sliding_window_interval = sliding_window_interval
-        self.data_agent = DataAgent(data_file_path=data_file_path, count=dp_count, is_twitter=is_twitter)
+        self.data_agent = DataAgent(data_file_path=data_file_path, count=dp_count)
         self.generic_distance_function = generic_distance
         self.dp_id_to_agent_id = dict()
         self.global_idf_count = {}
@@ -351,10 +347,7 @@ class KingAgent:
             with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w', encoding='utf8') as file:
                 for dp_id in agent.dp_ids:
                     dp_df = self.data_agent.raw_data.iloc[[self.data_agent.data_points[dp_id].index_in_df]]
-                    if self.is_twitter:
-                        file.write(str(dp_df['text'].values[0]) + '\n\n')
-                    else:
-                        file.write(str(dp_df['TEXT'].values[0]) + '\n\n')
+                    file.write(str(dp_df['text'].values[0]) + '\n\n')
 
     def write_tweet_ids_to_files(self, parent_dir):
         """
@@ -362,16 +355,13 @@ class KingAgent:
         :param parent_dir: the parent directory where you want the output to be at
         :return: None
         """
-        if not self.is_twitter:
-            return
         if not os.path.exists(parent_dir):
             os.makedirs(parent_dir)
         for agent_id, agent in self.agents.items():
             with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w', encoding='utf8') as file:
                 for dp_id in agent.dp_ids:
                     tweet_id = self.data_agent.data_points[dp_id].status_id
-                    if self.is_twitter:
-                        file.write(str(tweet_id) + '\n')
+                    file.write(str(tweet_id) + '\n')
 
     def get_topics_of_agents(self):
         """

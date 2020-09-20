@@ -17,7 +17,6 @@ if __name__ == '__main__':
                      agent_fading_rate=0.5,  # agent_fading_rate amount gets faded # 0.5
                      delete_agent_weight_threshold=0.4,  # 0.4
                      generic_distance=get_distance_tf_idf_cosine,
-                     is_twitter=True,
                      data_file_path=data_path,
                      dp_count=10000000,
                      verbose=1

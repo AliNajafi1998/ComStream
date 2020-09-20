@@ -1,4 +1,3 @@
-from Algo.DataPoint import ReutersDataPoint
 from Algo.DataPoint import TwitterDataPoint
 
 import pandas as pd
@@ -10,17 +9,15 @@ class DataAgent:
     current_dp_index = 0
     terms_global_frequency = 0
 
-    def __init__(self, data_file_path, count: int, epsilon=1e-7, is_twitter=True):
+    def __init__(self, data_file_path, count: int, epsilon=1e-7):
         """
         the object that handles data loading and processing
         :param data_file_path: the path where our data is at
         :param count: the amount of the data we want to process
         :param epsilon: Float
-        :param is_twitter: Boolean
         :return: None
         """
         self.data_file_path = data_file_path
-        self.is_twitter = is_twitter
         self.epsilon = epsilon
         self.raw_data = None
         self.token_to_id = {}
@@ -46,10 +43,7 @@ class DataAgent:
         :param dp: one dp with format data frame
         :return: object dp
         """
-        if self.is_twitter:
-            return self.get_twitter_dp(dp)
-        else:
-            return self.get_reuters_dp(dp)
+        return self.get_twitter_dp(dp)
 
     def get_twitter_dp(self, dp: pd.DataFrame) -> TwitterDataPoint:
         """
@@ -75,29 +69,6 @@ class DataAgent:
             user_id=user_id, status_id=status_id,
             created_at=created_at, is_verified=is_verified,
             favourites_count=favourites_count, retweet_count=retweet_count,
-            index_in_df=DataAgent.current_dp_index - 1
-        )
-
-    def get_reuters_dp(self, dp: pd.DataFrame) -> ReutersDataPoint:
-        """
-        turns one reuters data point's data-frame to our recognizable object dp
-        :param dp: one reuters dp with format data frame
-        :return: object reuters dp
-        """
-        tweet = dp['TEXT'].values[0]
-
-        # Extracting Data
-        freq_dict = self.get_freq_dict(tweet)
-
-        time_stamp = datetime.now()
-        topics = dp['TOPICS']
-        created_at = pd.to_datetime(dp['CREATED_AT'].values[0])
-
-        return ReutersDataPoint(
-            freq=freq_dict,
-            time_stamp=time_stamp,
-            topics=topics,
-            created_at=created_at,
             index_in_df=DataAgent.current_dp_index - 1
         )
 
@@ -127,14 +98,10 @@ class DataAgent:
         call the func to read the next dp
         :return: the object of the dp
         """
-        if DataAgent.current_dp_index >= self.count:
-            print('Finished')
-            return None
-        else:
-            DataAgent.current_dp_index += 1
-            dp = self.get_dp(self.raw_data.iloc[[DataAgent.current_dp_index - 1]])
-            self.data_points[dp.dp_id] = dp
-            return dp
+        DataAgent.current_dp_index += 1
+        dp = self.get_dp(self.raw_data.iloc[[DataAgent.current_dp_index - 1]])
+        self.data_points[dp.dp_id] = dp
+        return dp
 
     def has_next_dp(self):
         """

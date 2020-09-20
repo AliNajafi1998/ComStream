@@ -20,23 +20,6 @@ class DataPoint:
         """
 
 
-class ReutersDataPoint(DataPoint):
-    def __init__(self, freq: dict, time_stamp, topics, created_at, index_in_df):
-        """
-        the child object of DataPoint
-        :param freq: a dict of {token_id, frequency}
-        :param time_stamp: the time the dp has come to system
-        :param topics: truth labels
-        :param created_at: the time the dp was created at
-        :param index_in_df: the index of the dp in the df
-        :return: None
-        """
-        super().__init__(freq, time_stamp, created_at, index_in_df)
-        self.dp_id = DataPoint.dp_id
-        DataPoint.dp_id += 1
-        self.topics = topics
-
-
 class TwitterDataPoint(DataPoint):
     def __init__(self, freq: dict, time_stamp, user_id, status_id, created_at, is_verified, favourites_count,
                  retweet_count, index_in_df):
