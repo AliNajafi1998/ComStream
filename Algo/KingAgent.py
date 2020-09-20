@@ -39,18 +39,22 @@ class KingAgent:
                  verbose=0):
         """
         the class where every agent and dp is managed
-        :param save_output_interval: the time interval in which we will save our model, agents, agent keywords and agents with their dp's tweet ids
+        :param save_output_interval: the time interval in which we will save our model, agents, agent keywords and
+            agents with their dp's tweet ids
         :param max_topic_count: starting number of agents
-        :param communication_step: the time interval in which the algorithm will communicate for deleting old dps,handling outliers, fading agents weight
+        :param communication_step: the time interval in which the algorithm will communicate for deleting old dps,
+            handling outliers, fading agents weight
         :param clean_up_step: the time interval in which the dp is considered an old dp
         :param radius: a dp is assigned to the closest agent if the distance is less than radius
         :param alpha: the initial number of dps per agent
-        :param outlier_threshold: if in outlier detection, a dp's distance from agent is more than outlier_threshold, reassign that dp
+        :param outlier_threshold: if in outlier detection, a dp's distance from agent is more than outlier_threshold,
+            reassign that dp
         :param top_n: the maximum number of outliers we will re-assign in each clean up
         :param dp_count: the maximum number of dps to process in the algorithm
-        :param saved_max_keyword_per_agent: the number of keywords we want to save each time save_output_interval happens
+        :param saved_max_keyword_per_agent:the number of keywords we want to save each time save_output_interval happens
         :param fading_rate: the percentile of each agents weight that gets faded in each clean up (range: 0.0-1.0)
-        :param delete_faded_threshold: in each clean up step, if any agents weight is less than this threshold, the agent gets deleted
+        :param delete_faded_threshold: in each clean up step, if any agents weight is less than this threshold,
+            the agent gets deleted
         :param data_file_path: the path of the input data
         :param is_twitter: if the data is twitter True, else False
         :param generic_distance: the type of our distance metric
@@ -227,7 +231,8 @@ class KingAgent:
             if self.verbose != 0:
                 if (KingAgent.dp_counter + 1) % 1000 == 0:
                     print(
-                        f'{Fore.CYAN}{KingAgent.current_date} : data point count = {KingAgent.dp_counter + 1} number of agents : {len(self.agents)}')
+                        f'{Fore.CYAN}{KingAgent.current_date} : data point count = {KingAgent.dp_counter + 1} number '
+                        f'of agents : {len(self.agents)}')
             KingAgent.dp_counter += 1
             flag = True
             while flag:
@@ -253,7 +258,6 @@ class KingAgent:
     def communicate(self):
         """
         checks if now is the right time to communicate, if so then handles outliers and old dps and fades agent weights
-        :param agent_id: the id of the agent
         :return: None
         """
         communication_residual = (time.mktime(

@@ -1,5 +1,3 @@
-import copy
-
 from DataPoint import ReutersDataPoint
 from DataPoint import TwitterDataPoint
 

@@ -19,6 +19,7 @@ class DataPoint:
         :return: None
         """
 
+
 class ReutersDataPoint(DataPoint):
     def __init__(self, freq: dict, time_stamp, topics, created_at, index_in_df):
         """
