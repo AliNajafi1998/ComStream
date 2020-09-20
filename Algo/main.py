@@ -3,7 +3,7 @@ from Algo.Utils import get_distance_tf_idf_cosine
 import os
 
 if __name__ == '__main__':
-    data_path = os.path.join(os.getcwd(), 'Data/data_cleaned.pkl')
+    data_path = os.path.join(os.getcwd(), 'Data/data_cleaned_1000k.pkl')
     king = KingAgent(init_no_agents=5,
                      init_dp_per_agent=2,
                      save_output_interval="00:30:00",
