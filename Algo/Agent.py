@@ -1,6 +1,6 @@
 from typing import Callable
 
-from Utils import get_seconds
+from Algo.Utils import get_seconds
 
 
 class Agent:

@@ -1,10 +1,10 @@
-from KingAgent import KingAgent
-from Utils import get_distance_tf_idf_cosine
+from Algo.KingAgent import KingAgent
+from Algo.Utils import get_distance_tf_idf_cosine
 import os
 
 if __name__ == '__main__':
     os.chdir('..')
-    data_path = os.path.join(os.getcwd(), 'Data/data_cleaned_1000k.pkl')
+    data_path = os.path.join(os.getcwd(), 'Data/data_cleaned.pkl')
     king = KingAgent(max_topic_count=5,
                      save_output_interval="24:00:00",
                      communication_step="01:30:00",

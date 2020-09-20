@@ -1,5 +1,5 @@
-from Agent import Agent
-from Utils import get_distance_tf_idf_cosine, get_seconds
+from Algo.Agent import Agent
+from Algo.Utils import get_distance_tf_idf_cosine, get_seconds
 import random
 import re
 import time
@@ -9,7 +9,7 @@ import os
 from math import log
 import heapq
 from threading import Thread
-from DataAgent import DataAgent
+from Algo.DataAgent import DataAgent
 from pathlib import Path
 from colorama import Fore
 
