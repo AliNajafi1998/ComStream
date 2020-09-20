@@ -30,7 +30,7 @@ class TopicExtractor:
             out_day_dir = os.path.join(self.out_days_dir, day_file_name, 'clusters')
             for cluster_file_name in os.listdir(out_day_dir):
                 cluster_dir = os.path.join(out_day_dir, cluster_file_name)
-                with open(cluster_dir, "r")  as f:  # , encoding='utf8')
+                with open(cluster_dir, "r") as f:  # , encoding='utf8')
                     lines = f.readlines()
                     clean_lines = []
                     for line in lines:

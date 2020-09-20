@@ -22,17 +22,16 @@ class KingAgent:
 
     def __init__(self,
                  save_output_interval: str,
-                 max_topic_count: int,
-                 communication_step: str,
-                 clean_up_step: str,
+                 init_no_agents: int,
+                 communication_interval: str,
+                 sliding_window_interval: str,
                  radius: float,
-                 alpha: int,
+                 init_dp_per_agent: int,
                  outlier_threshold: float,
-                 top_n: int,
                  dp_count: int,
-                 saved_max_keyword_per_agent: int,
-                 fading_rate: float,
-                 delete_faded_threshold: float,
+                 max_no_keywords: int,
+                 agent_fading_rate: float,
+                 delete_agent_weight_threshold: float,
                  data_file_path: str,
                  is_twitter=False,
                  generic_distance=get_distance_tf_idf_cosine,
@@ -41,19 +40,18 @@ class KingAgent:
         the class where every agent and dp is managed
         :param save_output_interval: the time interval in which we will save our model, agents, agent keywords and
             agents with their dp's tweet ids
-        :param max_topic_count: starting number of agents
-        :param communication_step: the time interval in which the algorithm will communicate for deleting old dps,
+        :param init_no_agents: starting number of agents
+        :param communication_interval: the time interval in which the algorithm will communicate for deleting old dps,
             handling outliers, fading agents weight
-        :param clean_up_step: the time interval in which the dp is considered an old dp
+        :param sliding_window_interval: the time interval in which the dp is considered an old dp
         :param radius: a dp is assigned to the closest agent if the distance is less than radius
-        :param alpha: the initial number of dps per agent
+        :param init_dp_per_agent: the initial number of dps per agent
         :param outlier_threshold: if in outlier detection, a dp's distance from agent is more than outlier_threshold,
             reassign that dp
-        :param top_n: the maximum number of outliers we will re-assign in each clean up
         :param dp_count: the maximum number of dps to process in the algorithm
-        :param saved_max_keyword_per_agent:the number of keywords we want to save each time save_output_interval happens
-        :param fading_rate: the percentile of each agents weight that gets faded in each clean up (range: 0.0-1.0)
-        :param delete_faded_threshold: in each clean up step, if any agents weight is less than this threshold,
+        :param max_no_keywords:the number of keywords we want to save each time save_output_interval happens
+        :param agent_fading_rate: the percentile of each agents weight that gets faded in each clean up (range: 0.0-1.0)
+        :param delete_agent_weight_threshold: in each clean up step, if any agents weight is less than this threshold,
             the agent gets deleted
         :param data_file_path: the path of the input data
         :param is_twitter: if the data is twitter True, else False
@@ -62,7 +60,8 @@ class KingAgent:
         :return: None
         """
         pattern = re.compile(r'^[0-9]+:[0-9]{2}:[0-9]{2}$')
-        are_invalid_steps = len(pattern.findall(communication_step)) != 1 or len(pattern.findall(clean_up_step)) != 1
+        are_invalid_steps = len(pattern.findall(communication_interval)) != 1 or len(
+            pattern.findall(sliding_window_interval)) != 1
 
         if are_invalid_steps:
             raise Exception(f'Invalid inputs fot steps')
@@ -70,15 +69,14 @@ class KingAgent:
         self.is_twitter = is_twitter
         self.agents = {}
         self.radius = radius
-        self.fading_rate = fading_rate
-        self.delete_faded_threshold = delete_faded_threshold
-        self.communication_step = communication_step
-        self.alpha = alpha
-        self.max_topic_count = max_topic_count
+        self.agent_fading_rate = agent_fading_rate
+        self.delete_agent_weight_threshold = delete_agent_weight_threshold
+        self.communication_interval = communication_interval
+        self.init_dp_per_agent = init_dp_per_agent
+        self.init_no_agents = init_no_agents
         self.outlier_threshold = outlier_threshold
-        self.top_n = top_n
-        self.saved_max_keyword_per_agent = saved_max_keyword_per_agent
-        self.clean_up_step = clean_up_step
+        self.max_no_keywords = max_no_keywords
+        self.sliding_window_interval = sliding_window_interval
         self.data_agent = DataAgent(data_file_path=data_file_path, count=dp_count, is_twitter=is_twitter)
         self.generic_distance_function = generic_distance
         self.dp_id_to_agent_id = dict()
@@ -141,11 +139,6 @@ class KingAgent:
                 outliers_to_join.append((outlier_id, min_distance, similar_agent_id))
             else:
                 print('Sth went wrong!')
-        outliers_to_join = sorted(outliers_to_join, key=lambda tup: tup[1])
-        if self.top_n < len(outliers_to_join):
-            outliers_to_join = outliers_to_join[:self.top_n]
-            for dp_id, distance, agent_id in outliers_to_join[self.top_n:]:
-                del self.data_agent.data_points[dp_id]
 
         for dp_id, distance, agent_id in outliers_to_join:
             if distance > self.radius:
@@ -154,21 +147,21 @@ class KingAgent:
             else:
                 self.agents[agent_id].add_data_point(self.data_agent.data_points[dp_id])
 
-    def warm_up(self):
+    def init_agents(self):
         """
         filling the initial agents with initial dps at the start of the train
         :return: None
         """
-        for i in range(self.max_topic_count):
+        for i in range(self.init_no_agents):
             self.create_agent()
         flag = True
-        agents_dict = {id_: self.alpha for id_ in self.agents.keys()}
-        for i in range(self.max_topic_count * self.alpha):
+        agents_dict = {id_: self.init_dp_per_agent for id_ in self.agents.keys()}
+        for i in range(self.init_no_agents * self.init_dp_per_agent):
             random_agent_id = random.sample(list(agents_dict), k=1)[0]
             dp = self.data_agent.get_next_dp()
             if flag:
                 self.first_communication_residual = time.mktime(KingAgent.current_date.timetuple()) % get_seconds(
-                    self.communication_step) - 0
+                    self.communication_interval) - 0
                 self.first_save_output_residual = time.mktime(KingAgent.current_date.timetuple()) % get_seconds(
                     self.save_output_interval) - 0
                 flag = False
@@ -208,7 +201,7 @@ class KingAgent:
         """
         for agent_id in list(self.agents.keys()):
             agent = self.agents[agent_id]
-            agent.fade_agent_weight(self.fading_rate, self.delete_faded_threshold)
+            agent.fade_agent_weight(self.agent_fading_rate, self.delete_agent_weight_threshold)
 
     def handle_old_dps(self):
         """
@@ -223,9 +216,9 @@ class KingAgent:
         the main training function that handles everything
         :return: None
         """
-        self.warm_up()
+        self.init_agents()
         self.handle_outliers()
-        KingAgent.dp_counter = self.max_topic_count * self.alpha
+        KingAgent.dp_counter = self.init_no_agents * self.init_dp_per_agent
         while self.data_agent.has_next_dp():
             dp = self.data_agent.get_next_dp()
             if self.verbose != 0:
@@ -262,7 +255,7 @@ class KingAgent:
         """
         communication_residual = (time.mktime(
             KingAgent.current_date.timetuple()) - self.first_communication_residual) % get_seconds(
-            self.communication_step)
+            self.communication_interval)
         if abs(communication_residual) <= 1e-7:
             self.handle_old_dps()
             self.handle_outliers()
@@ -299,7 +292,7 @@ class KingAgent:
         self.write_topics_to_files(
             os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
-                             KingAgent.dp_counter), 'topics'), self.saved_max_keyword_per_agent)
+                             KingAgent.dp_counter), 'topics'), self.max_no_keywords)
         self.write_tweet_ids_to_files(
             os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(

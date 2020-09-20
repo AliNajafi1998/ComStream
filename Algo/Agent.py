@@ -100,7 +100,7 @@ class Agent:
             pass
         else:
             if fade_rate > 1 or fade_rate < 0 or delete_faded_threshold > 1 or delete_faded_threshold < 0:
-                raise Exception(f'Invalid Fade Rate or delete_faded_threshold : {fade_rate, delete_faded_threshold}')
+                raise Exception(f'Invalid Fade Rate or delete_agent_weight_threshold : {fade_rate, delete_faded_threshold}')
             else:
                 self.weight = self.weight * (1 - fade_rate)
                 if self.weight < delete_faded_threshold:
@@ -131,11 +131,11 @@ class Agent:
 
     def handle_old_dps(self):
         """
-        deletes the dps that are older than clean_up_step time interval
+        deletes the dps that are older than sliding_window_interval time interval
         :return: None
         """
         for dp_id in self.dp_ids:
             dp = self.king_agent.data_agent.data_points[dp_id]
             if abs((dp.created_at - self.king_agent.current_date).total_seconds()) > get_seconds(
-                    self.king_agent.clean_up_step):
+                    self.king_agent.sliding_window_interval):
                 self.remove_data_point(dp_id)
