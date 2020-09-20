@@ -30,13 +30,13 @@ class TopicExtractor:
             out_day_dir = os.path.join(self.out_days_dir, day_file_name, 'clusters')
             for cluster_file_name in os.listdir(out_day_dir):
                 cluster_dir = os.path.join(out_day_dir, cluster_file_name)
-                f = open(cluster_dir, "r")  # , encoding='utf8')
-                lines = f.readlines()
-                clean_lines = []
-                for line in lines:
-                    if line.strip() != '':
-                        clean_lines.append(line.strip())
-                clusters.append((len(clean_lines), clean_lines))
+                with open(cluster_dir, "r")  as f:  # , encoding='utf8')
+                    lines = f.readlines()
+                    clean_lines = []
+                    for line in lines:
+                        if line.strip() != '':
+                            clean_lines.append(line.strip())
+                    clusters.append((len(clean_lines), clean_lines))
             clusters.sort(reverse=True)
             days_clusters.append(clusters)
         return days_clusters
@@ -99,6 +99,7 @@ class TopicExtractor:
         my_date -= delta_time
         my_date = str(my_date)[:10]
         return my_date
+
 
 if __name__ == '__main__':
     in_days_dir = os.path.join(Path(os.getcwd()).parent, 'Data/outputs/multi_agent')
