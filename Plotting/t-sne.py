@@ -8,7 +8,7 @@ import seaborn as sns
 
 
 # Params:
-class TsnePlot():
+class TSNEPlot:
     def __init__(self, pred_dir, n_dp_to_plot, top_n, dist_outlier, word2ind_threshold, big_cluster_indexes2plot=None):
         self.top_n = top_n  # the clusters with dp's more than this number are valid, the rest are outliers
         self.dist_outlier = dist_outlier  # more means you will see more dp, more outliers
@@ -22,10 +22,11 @@ class TsnePlot():
         self.tsne_results = -1
         self.has_manulally_chosen_big_clusers = False
         self.big_cluster_indexes = []
-        if big_cluster_indexes2plot != None:
+        if big_cluster_indexes2plot is not None:
             self.big_cluster_indexes = big_cluster_indexes2plot
             self.has_manulally_chosen_big_clusers = True
-        self.interval_indexes_in_data = []  # a list of indexes (end index -self not included) (the start is the end of the last :))
+
+        self.interval_indexes_in_data = []  # a list of indexes(end index -self not included)(the start is the end of the last
         self.word2ind_threshold = word2ind_threshold
 
     def fill_word2ind(self):
@@ -50,7 +51,6 @@ class TsnePlot():
                     self.word2ind[word] = self.ind_n
                     self.ind2word[self.ind_n] = word
                     self.ind_n += 1
-                    f.close()
         print(f'old word2ind2 size: {len(word2ind2)}, new word2ind2 size: {len(self.word2ind)}')
 
     def fill_data_frame(self):
@@ -61,7 +61,7 @@ class TsnePlot():
 
         for output_interval in os.listdir(self.pred_dir):
             for label_dir in os.listdir(self.pred_dir + '/' + output_interval + '/clusters'):
-                if self.has_manulally_chosen_big_clusers == True and int(
+                if self.has_manulally_chosen_big_clusers and int(
                         label_dir[:-4]) not in self.big_cluster_indexes:
                     continue
                 f = open(self.pred_dir + '/' + output_interval + '/clusters/' + label_dir, "r")  # , encoding='utf8')
@@ -95,6 +95,7 @@ class TsnePlot():
         print('Size of the dataframe: {}'.format(self.data_df.shape))
 
     def run_tsne(self):
+        self.data_df: pd.DataFrame
         # randomizing the data (this might be needed, don't touch :))
         # np.random.seed(42)
         # rndperm = np.random.permutation(self.data_df.shape[0])
@@ -115,6 +116,7 @@ class TsnePlot():
         return np.math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))
 
     def outlier_removal(self):
+        self.tsne_results: pd.DataFrame
         # get rid of outliers in only the plot:
         y_pred = self.data_df['y'].to_list()
         dist_ind = []  # tuple: (mean_distance, ind)
@@ -172,7 +174,8 @@ class TsnePlot():
     #
     #     self.df_subset['y'] = new_ys
 
-    def rearange_label_names(self):
+    def rearrange_label_names(self):
+        self.data_df: pd.DataFrame
         count = 0
         label_names = sorted(self.data_df['y'].unique())
         new2old_label = {old_label: new_label for new_label, old_label in enumerate(label_names)}
@@ -182,6 +185,7 @@ class TsnePlot():
         self.data_df['y'] = labels
 
     def plot_tsne_results(self):
+        self.data_df: pd.DataFrame
         # sns.palplot(sns.color_palette("Paired"))
         # flatui = ["#9b59b6", "#3498db", "#95a5a6", "#e74c3c", "#34495e", "#2ecc71"]
         start_ind = 0
@@ -210,12 +214,12 @@ class TsnePlot():
         self.run_tsne()
         self.outlier_removal()
         # self.make_outlier_special_color()
-        self.rearange_label_names()
+        self.rearrange_label_names()
         self.plot_tsne_results()
 
 
 if __name__ == '__main__':
-    tsne = TsnePlot(pred_dir=str(Path(os.getcwd()).parent) + '/Algo/tmp_output',
+    tsne = TSNEPlot(pred_dir=str(Path(os.getcwd()).parent) + '/Algo/tmp_output',
                     # a file filled with text files filled with tweets, each text file is a cluster
                     n_dp_to_plot=10000,  # if you want to plot all, put 1e9 here
                     top_n=6,  # we will show the top_n clusters
