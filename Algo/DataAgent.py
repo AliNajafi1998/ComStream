@@ -1,5 +1,5 @@
-from DataPoint import ReutersDataPoint
-from DataPoint import TwitterDataPoint
+from Algo.DataPoint import ReutersDataPoint
+from Algo.DataPoint import TwitterDataPoint
 
 import pandas as pd
 from datetime import datetime
