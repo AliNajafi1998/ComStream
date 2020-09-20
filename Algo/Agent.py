@@ -17,7 +17,7 @@ class Agent:
         self.agent_id = Agent.agent_id
         self.outlier_threshold = king_agent.outlier_threshold
         Agent.agent_id += 1
-        self.agent_f = {}
+        self.agent_frequencies = {}
         self.weight = 0
         self.dp_ids = []
         self.king_agent = king_agent
@@ -31,12 +31,12 @@ class Agent:
         """
         self.weight += 1
         for token_id, frequency in dp.freq.items():
-            if token_id in self.agent_f:
-                self.agent_f[token_id] += frequency
+            if token_id in self.agent_frequencies:
+                self.agent_frequencies[token_id] += frequency
                 self.update_global_tf(frequency, token_id)
             else:
                 self.king_agent.global_idf_count[token_id] = self.king_agent.global_idf_count.get(token_id, 0) + 1
-                self.agent_f[token_id] = frequency
+                self.agent_frequencies[token_id] = frequency
                 self.update_global_tf(frequency, token_id)
 
         self.dp_ids.append(dp.dp_id)
@@ -68,11 +68,11 @@ class Agent:
             if self.weight <= 0:
                 self.weight = 0
             for token_id, frequency in self.king_agent.data_agent.data_points[dp_id].freq.items():
-                if token_id in self.agent_f:
-                    self.agent_f[token_id] -= frequency
+                if token_id in self.agent_frequencies:
+                    self.agent_frequencies[token_id] -= frequency
 
-                    if self.agent_f[token_id] <= 0:
-                        del self.agent_f[token_id]
+                    if self.agent_frequencies[token_id] <= 0:
+                        del self.agent_frequencies[token_id]
                         self.king_agent.global_idf_count[token_id] -= 1
                         if self.king_agent.global_idf_count[token_id] == 0:
                             del self.king_agent.global_idf_count[token_id]
@@ -127,7 +127,7 @@ class Agent:
         :param f: a dictionary of term frequencies {token_id:frequency} of the dp
         :return: (int) returns the distance of the dp and this agent
         """
-        return self.generic_distance_function(king_agent, f, self.agent_f)
+        return self.generic_distance_function(king_agent, f, self.agent_frequencies)
 
     def handle_old_dps(self):
         """

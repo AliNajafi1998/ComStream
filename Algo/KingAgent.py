@@ -29,6 +29,7 @@ class KingAgent:
                  init_dp_per_agent: int,
                  outlier_threshold: float,
                  dp_count: int,
+                 max_no_topics: int,
                  max_no_keywords: int,
                  agent_fading_rate: float,
                  delete_agent_weight_threshold: float,
@@ -49,7 +50,8 @@ class KingAgent:
         :param outlier_threshold: if in outlier detection, a dp's distance from agent is more than outlier_threshold,
             reassign that dp
         :param dp_count: the maximum number of dps to process in the algorithm
-        :param max_no_keywords:the number of keywords we want to save each time save_output_interval happens
+        :param max_no_topics: the max number of topics we want to save each time save_output_interval happens
+        :param max_no_keywords: the max number of keywords we want to save each time save_output_interval happens
         :param agent_fading_rate: the percentile of each agents weight that gets faded in each clean up (range: 0.0-1.0)
         :param delete_agent_weight_threshold: in each clean up step, if any agents weight is less than this threshold,
             the agent gets deleted
@@ -76,6 +78,7 @@ class KingAgent:
         self.init_no_agents = init_no_agents
         self.outlier_threshold = outlier_threshold
         self.max_no_keywords = max_no_keywords
+        self.max_no_topics = max_no_topics
         self.sliding_window_interval = sliding_window_interval
         self.data_agent = DataAgent(data_file_path=data_file_path, count=dp_count, is_twitter=is_twitter)
         self.generic_distance_function = generic_distance
@@ -292,7 +295,7 @@ class KingAgent:
         self.write_topics_to_files(
             os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
-                             KingAgent.dp_counter), 'topics'), self.max_no_keywords)
+                             KingAgent.dp_counter), 'topics'))
         self.write_tweet_ids_to_files(
             os.path.join(Path(os.getcwd()).parent, 'Data', 'outputs/multi_agent',
                          'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
@@ -321,22 +324,20 @@ class KingAgent:
         with open(file_dir, 'rb') as file:
             return pickle.load(file)
 
-    def write_topics_to_files(self, parent_dir, max_topic_n=10):
+    def write_topics_to_files(self, parent_dir):
         """
         write the max_topic_n topics to the file in parent_dir
         :param parent_dir: the directory of the parent where you want to write the topics at
-        :param max_topic_n: how many of the top topics you want to write at the files
         :return: None
         """
-        agent_topics = self.get_topics_of_agents(max_topic_n)
+        topics_keywords = self.get_topics_of_agents()
         if not os.path.exists(parent_dir):
             os.makedirs(parent_dir)
-        for agent_id, topics in agent_topics.items():
-            key_words_str = ''
-            for item in topics:
-                key_words_str += str(self.data_agent.id_to_token[item[0]]) + ' '
-            with open(os.path.join(parent_dir, f"{agent_id}.txt"), 'w', encoding='utf8') as file:
-                file.write(key_words_str)
+        topics_keywords_text = ''
+        for keywords in topics_keywords:
+            topics_keywords_text += ' '.join(keywords) + '\n'
+        with open(os.path.join(parent_dir, f"top_topics_keywords.txt"), 'w', encoding='utf8') as file:
+            file.write(topics_keywords_text.strip())
 
     def write_output_to_files(self, parent_dir):
         """
@@ -372,23 +373,23 @@ class KingAgent:
                     if self.is_twitter:
                         file.write(str(tweet_id) + '\n')
 
-    def get_topics_of_agents(self, max_topic_n=10):
+    def get_topics_of_agents(self):
         """
         get max_topic_n topics (most frequent words of that agent) of each agent and return it
-        :param max_topic_n: the maximum number of top topics you want to be returned
-        :return: dict of list of tuple of top topics of each agent with their tf_idf value
-        {agent_id: [(token_id1, tf_idf_value1), (token_id2, tf_idf_value2), ...]
+        :return: list (topics) of list (keywords)
         """
-        agent_topics = {}
+        topics_keywords = []  # list (topics) of list (keywords)
         for agent_id, agent in self.agents.items():
             tf_idf = {}
-            for term_id, f in agent.agent_f.items():
-                dfi = 0
-                for agent_id_2, agent_2 in self.agents.items():
-                    if term_id in agent_2.agent_f:
-                        dfi += 1
+            for term_id, freq in agent.agent_frequencies.items():
+                tf_idf[term_id] = 1 + log((len(self.agents) + 1) / self.global_idf_count[term_id]) * (
+                        freq / sum(agent.agent_frequencies.values()))
 
-                tf_idf[term_id] = 1 + log((len(self.agents) + 1) / dfi) * (f / sum(agent.agent_f.values()))
-
-            agent_topics[agent_id] = heapq.nlargest(max_topic_n, tf_idf.items(), key=lambda x: x[1])
-        return agent_topics
+            tf_idf_keywords = [self.data_agent.id_to_token[term_id] for term_id in
+                               sorted(tf_idf, key=tf_idf.get, reverse=True)]
+            tf_idf_top_keywords = tf_idf_keywords[:self.max_no_keywords]
+            topics_keywords.append((len(agent.dp_ids), tf_idf_top_keywords))
+        topics_keywords.sort(reverse=True)
+        topics_keywords = topics_keywords[:self.max_no_topics]
+        topics_keywords = [keywords for (agent_size, keywords) in topics_keywords]
+        return topics_keywords
