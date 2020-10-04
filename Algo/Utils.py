@@ -44,14 +44,14 @@ def calculate_idf(king_agent, freq1: dict, freq2: dict):
     :return: returns a dictionary of idfs for each token {token_id:frequencies}
     """
     idf_dictionary = dict()
-    freq = copy.deepcopy(freq1)
-    for token_id, f1 in freq2.items():
-        freq[token_id] = freq.get(token_id, 0) + freq2[token_id]
+    freq = list(freq1.keys())
+    freq.extend(list(freq2.keys()))
+    freq = set(freq)
 
-    for token_id_1, frequency_1 in freq.items():
-        counter = 1 + king_agent.global_idf_count.get(token_id_1, 0)
+    for token_id in freq:
+        counter = 1 + king_agent.global_idf_count.get(token_id, 0)
         num = 1 + len(king_agent.agents)
-        idf_dictionary[token_id_1] = 1 + log(num / counter)
+        idf_dictionary[token_id] = 1 + log(num / counter)
 
     return idf_dictionary
 
