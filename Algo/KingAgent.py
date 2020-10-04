@@ -56,7 +56,7 @@ class KingAgent:
             the agent gets deleted
         :param data_file_path: the path of the input data
         :param generic_distance: the type of our distance metric
-        :data_start_date: created_at of first tweet
+        :param data_start_date: created_at of first tweet
         :param verbose: 0 doesn't keep logs, 1 keeps logs
         :return: None
         """

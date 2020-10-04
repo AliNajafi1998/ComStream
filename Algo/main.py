@@ -1,16 +1,19 @@
 from Algo.KingAgent import KingAgent
 from Algo.Utils import get_distance_tf_idf_cosine
 import os
+from pathlib import Path
 
 if __name__ == '__main__':
-    data_path = os.path.join(os.getcwd(), 'Data/data_cleaned_1000k.pkl')
+    # 'Data/data_cleaned_1000k.pkl'
+    os.chdir("../Data")
+    data_path = os.path.join(os.getcwd(), 'FA/FACUP.pkl')
     king = KingAgent(init_no_agents=5,
                      init_dp_per_agent=2,
-                     save_output_interval="00:30:00",
-                     communication_interval="00:10:00",
-                     sliding_window_interval="24:00:00",
-                     radius=0.75,
-                     outlier_threshold=0.78,
+                     save_output_interval="00:01:00",
+                     communication_interval="00:01:00",
+                     sliding_window_interval="00:01:00",
+                     radius=0.80,
+                     outlier_threshold=0.83,
                      max_no_topics=10,
                      max_no_keywords=5,
                      agent_fading_rate=0.5,
