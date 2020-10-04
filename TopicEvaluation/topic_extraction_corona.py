@@ -49,7 +49,7 @@ class TopicExtractor:
                 for line in cluster_lines:
                     cluster_concatenated_texts += line + ' '
                 corpus.append(cluster_concatenated_texts.strip())
-        self.vectorizer = TfidfVectorizer()
+        self.vectorizer = TfidfVectorizer(analyzer='word', tokenizer=lambda x: x.split())
         self.vectorizer.fit(corpus)
         self.ind2word = self.vectorizer.get_feature_names()
 

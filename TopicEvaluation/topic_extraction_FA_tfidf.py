@@ -53,7 +53,7 @@ class TopicExtractor:
                 for line in cluster_lines:
                     cluster_concatenated_texts += line + ' '
                 corpus.append(cluster_concatenated_texts.strip())
-        self.vectorizer = TfidfVectorizer()
+        self.vectorizer = TfidfVectorizer(analyzer='word', tokenizer=lambda x: x.split())
         self.vectorizer.fit(corpus)
         self.ind2word = self.vectorizer.get_feature_names()
 
@@ -123,5 +123,5 @@ if __name__ == '__main__':
     # out_save_dir = os.path.join(Path(os.getcwd()).parent, 'Data/outputs/multi_agent_topics')
     in_days_dir = os.path.join(Path(os.getcwd()).parent, 'Data/outputs/multi_agent')
     out_save_dir = os.path.join(Path(os.getcwd()).parent, 'C:/Users/shila/Desktop/topics/pred')
-    TE = TopicExtractor(data_dir=in_days_dir, save_dir=out_save_dir, top_n_topics=12, top_n_keywords=9, shift_time=1)
+    TE = TopicExtractor(data_dir=in_days_dir, save_dir=out_save_dir, top_n_topics=20, top_n_keywords=9, shift_time=1)
     TE.extract_and_save_in_files()
