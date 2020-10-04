@@ -74,7 +74,7 @@ class Evaluate:
                 lines = f.readlines()
                 lines = lines[:self.top_n_topics]
                 for line in lines:
-                    keywords = [word for word in line.strip().split(',')]
+                    keywords = [word for word in line.strip().split(' ')]
                     keywords = keywords[:self.top_n_keywords]
                     topics_keywords.append(keywords)
             day_topics_keywords.append(topics_keywords)
@@ -123,21 +123,21 @@ class Evaluate:
     def topic_recall(self):
         print('topic_recall  |  keyword_precision  |  keyword_recall  |  keyword_F_score')
         tr = self.no_found_truth_topics / self.no_truth_topics
-        print("%.2f (%d/%d)" % (tr, self.no_found_truth_topics, self.no_truth_topics), end='  |  ')
+        print("%.3f (%d/%d)" % (tr, self.no_found_truth_topics, self.no_truth_topics), end='  |  ')
 
     def keyword_precision(self):
         kp = self.no_found_prediction_keywords / self.no_prediction_keyword
-        print("%.2f (%d/%d)" % (kp, self.no_found_prediction_keywords, self.no_prediction_keyword), end='  |  ')
+        print("%.3f (%d/%d)" % (kp, self.no_found_prediction_keywords, self.no_prediction_keyword), end='  |  ')
 
     def keyword_recall(self):
         kr = self.no_found_truth_keywords / self.no_truth_keyword
-        print("%.2f (%d/%d)" % (kr, self.no_found_truth_keywords, self.no_truth_keyword), end='  |  ')
+        print("%.3f (%d/%d)" % (kr, self.no_found_truth_keywords, self.no_truth_keyword), end='  |  ')
 
     def f_score(self):
         kr = self.no_found_truth_keywords / self.no_truth_keyword
         kp = self.no_found_prediction_keywords / self.no_prediction_keyword
 
-        print("%.2f " % ((2 * kr * kp) / (kp + kr)))
+        print("%.3f " % ((2 * kr * kp) / (kp + kr)))
 
     @staticmethod
     def remove_brackets_from_word(word):
@@ -151,11 +151,13 @@ class Evaluate:
 if __name__ == '__main__':
     # 'C:/Users/shila/Desktop/covid-stream/Data/outputs/other_topics/LDA'
     # 'C:/Users/shila/Desktop/covid-stream/Data/outputs/multi_agent_topics'
-    EV = Evaluate(truth_dir='C:/Users/shila/Desktop/covid-stream/Data/corona_truth',
-                  predicted_dir='C:/Users/shila/Desktop/covid-stream/Data/outputs/other_topics/LDA',
-                  top_n_topics=5,
-                  top_n_keywords=5,
-                  assigning_keyword_threshold=2
-                  # the pred_topic needs at least this many matched keywords for this topic to be considered found
-                  )
-    EV.run()
+    for x in range(20):
+        print(x+1,end=':\n')
+        EV = Evaluate(truth_dir='C:/Users/shila/Desktop/covid-stream/Data/corona_truth',
+                      predicted_dir='C:/Users/shila/Desktop/covid-stream/Data/outputs/multi_agent_topics',
+                      top_n_topics=x+1,
+                      top_n_keywords=5,
+                      assigning_keyword_threshold=2
+                      # the pred_topic needs at least this many matched keywords for this topic to be considered found
+                      )
+        EV.run()

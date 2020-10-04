@@ -86,6 +86,7 @@ class TopicExtractor:
                 day_correct_format = day_correct_format[:3] + day_correct_format[4]
             if not self.need_to_save_this_day(day_correct_format):
                 continue
+            print('saved day: ' + str(self.days[day_ind]))
             topics_text = ''
             for keywords in topics_keywords:
                 keywords_text = ''
@@ -122,5 +123,5 @@ if __name__ == '__main__':
     # out_save_dir = os.path.join(Path(os.getcwd()).parent, 'Data/outputs/multi_agent_topics')
     in_days_dir = os.path.join(Path(os.getcwd()).parent, 'Data/outputs/multi_agent')
     out_save_dir = os.path.join(Path(os.getcwd()).parent, 'C:/Users/shila/Desktop/topics/pred')
-    TE = TopicExtractor(data_dir=in_days_dir, save_dir=out_save_dir, top_n_topics=25, top_n_keywords=4, shift_time=2)
+    TE = TopicExtractor(data_dir=in_days_dir, save_dir=out_save_dir, top_n_topics=12, top_n_keywords=9, shift_time=1)
     TE.extract_and_save_in_files()

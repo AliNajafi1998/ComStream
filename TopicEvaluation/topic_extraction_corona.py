@@ -81,8 +81,8 @@ class TopicExtractor:
             for keywords in topics_keywords:
                 keywords_text = ''
                 for keyword in keywords:
-                    keywords_text += keyword + ','
-                keywords_text = keywords_text.strip(',')
+                    keywords_text += keyword + ' '
+                keywords_text = keywords_text.strip(' ')
                 topics_text += keywords_text + '\n'
             file_name = self.get_previous_day_date(self.days[day_ind]) + '.txt'
             self.save_in_file(parent_dir=self.save_dir, file_name=file_name, text=topics_text)
@@ -104,5 +104,5 @@ class TopicExtractor:
 if __name__ == '__main__':
     in_days_dir = os.path.join(Path(os.getcwd()).parent, 'Data/outputs/multi_agent')
     out_save_dir = os.path.join(Path(os.getcwd()).parent, 'Data/outputs/multi_agent_topics')
-    TE = TopicExtractor(data_dir=in_days_dir, save_dir=out_save_dir, top_n_topics=10, top_n_keywords=10)
+    TE = TopicExtractor(data_dir=in_days_dir, save_dir=out_save_dir, top_n_topics=20, top_n_keywords=20)
     TE.extract_and_save_in_files()
