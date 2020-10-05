@@ -8,11 +8,11 @@ import pandas as pd
 import os
 from math import log
 from threading import Thread
-from Algo.DataAgent import DataAgent
+from Algo.DataManager import DataManager
 from colorama import Fore
 
 
-class KingAgent:
+class Coordinator:
     current_date = pd.to_datetime('2020-03-29T00:00:00Z')
     prev_date = pd.to_datetime('2020-03-28T00:00:00Z')
 
@@ -23,12 +23,12 @@ class KingAgent:
                  init_no_agents: int,
                  communication_interval: str,
                  sliding_window_interval: str,
-                 radius: float,
+                 assign_radius: float,
                  init_dp_per_agent: int,
                  outlier_threshold: float,
                  dp_count: int,
-                 max_no_topics: int,
-                 max_no_keywords: int,
+                 no_topics: int,
+                 no_keywords: int,
                  agent_fading_rate: float,
                  delete_agent_weight_threshold: float,
                  data_file_path: str,
@@ -44,13 +44,13 @@ class KingAgent:
         :param communication_interval: the time interval in which the algorithm will communicate for deleting old dps,
             handling outliers, fading agents weight
         :param sliding_window_interval: the time interval in which the dp is considered an old dp
-        :param radius: a dp is assigned to the closest agent if the distance is less than radius
+        :param assign_radius: a dp is assigned to the closest agent if the distance is less than radius
         :param init_dp_per_agent: the initial number of dps per agent
         :param outlier_threshold: if in outlier detection, a dp's distance from agent is more than outlier_threshold,
             reassign that dp
         :param dp_count: the maximum number of dps to process in the algorithm
-        :param max_no_topics: the max number of topics we want to save each time save_output_interval happens
-        :param max_no_keywords: the max number of keywords we want to save each time save_output_interval happens
+        :param no_topics: the max number of topics we want to save each time save_output_interval happens
+        :param no_keywords: the max number of keywords we want to save each time save_output_interval happens
         :param agent_fading_rate: the percentile of each agents weight that gets faded in each clean up (range: 0.0-1.0)
         :param delete_agent_weight_threshold: in each clean up step, if any agents weight is less than this threshold,
             the agent gets deleted
@@ -68,25 +68,25 @@ class KingAgent:
             raise Exception(f'Invalid inputs fot steps')
         self.save_output_interval = save_output_interval
         self.agents = {}
-        self.radius = radius
+        self.assign_radius = assign_radius
         self.agent_fading_rate = agent_fading_rate
         self.delete_agent_weight_threshold = delete_agent_weight_threshold
         self.communication_interval = communication_interval
         self.init_dp_per_agent = init_dp_per_agent
         self.init_no_agents = init_no_agents
         self.outlier_threshold = outlier_threshold
-        self.max_no_keywords = max_no_keywords
-        self.max_no_topics = max_no_topics
+        self.no_keywords = no_keywords
+        self.no_topics = no_topics
         self.sliding_window_interval = sliding_window_interval
-        self.data_agent = DataAgent(data_file_path=data_file_path, count=dp_count)
+        self.data_agent = DataManager(data_file_path=data_file_path, count=dp_count)
         self.generic_distance_function = generic_distance
         self.dp_id_to_agent_id = dict()
         self.global_idf_count = {}
         self.first_communication_residual = None
         self.first_save_output_residual = None
         self.verbose = verbose
-        KingAgent.current_date = data_start_date
-        KingAgent.prev_date = KingAgent.current_date + pd.Timedelta(days=-1)
+        Coordinator.current_date = data_start_date
+        Coordinator.prev_date = Coordinator.current_date + pd.Timedelta(days=-1)
 
     def create_agent(self) -> int:
         """
@@ -144,7 +144,7 @@ class KingAgent:
                 print('Sth went wrong!')
 
         for dp_id, distance, agent_id in outliers_to_join:
-            if distance > self.radius:
+            if distance > self.assign_radius:
                 new_agent_id = self.create_agent()
                 self.agents[new_agent_id].add_data_point(self.data_agent.data_points[dp_id])
             else:
@@ -163,13 +163,13 @@ class KingAgent:
             random_agent_id = random.sample(list(agents_dict), k=1)[0]
             dp = self.data_agent.get_next_dp()
             if flag:
-                self.first_communication_residual = time.mktime(KingAgent.current_date.timetuple()) % get_seconds(
+                self.first_communication_residual = time.mktime(Coordinator.current_date.timetuple()) % get_seconds(
                     self.communication_interval) - 0
-                self.first_save_output_residual = time.mktime(KingAgent.current_date.timetuple()) % get_seconds(
+                self.first_save_output_residual = time.mktime(Coordinator.current_date.timetuple()) % get_seconds(
                     self.save_output_interval) - 0
                 flag = False
-            KingAgent.current_date = dp.created_at
-            KingAgent.prev_date = dp.created_at
+            Coordinator.current_date = dp.created_at
+            Coordinator.prev_date = dp.created_at
             self.agents[random_agent_id].add_data_point(dp)
             agents_dict[random_agent_id] -= 1
             if agents_dict[random_agent_id] == 0:
@@ -191,7 +191,7 @@ class KingAgent:
             if distance <= min_distance:
                 min_distance = distance
                 similar_agent_id = agent_id
-        if min_distance > self.radius:
+        if min_distance > self.assign_radius:
             new_agent_id = self.create_agent()
             self.agents[new_agent_id].add_data_point(self.data_agent.data_points[dp.dp_id])
         else:
@@ -221,20 +221,20 @@ class KingAgent:
         """
         self.init_agents()
         self.handle_outliers()
-        KingAgent.dp_counter = self.init_no_agents * self.init_dp_per_agent
+        Coordinator.dp_counter = self.init_no_agents * self.init_dp_per_agent
         while self.data_agent.has_next_dp():
             dp = self.data_agent.get_next_dp()
             if self.verbose != 0:
-                if (KingAgent.dp_counter + 1) % 1000 == 0:
+                if (Coordinator.dp_counter + 1) % 1000 == 0:
                     print(
-                        f'{Fore.CYAN}{KingAgent.current_date} : data point count = {KingAgent.dp_counter + 1} number '
+                        f'{Fore.CYAN}{Coordinator.current_date} : data point count = {Coordinator.dp_counter + 1} number '
                         f'of agents : {len(self.agents)}')
-            KingAgent.dp_counter += 1
+            Coordinator.dp_counter += 1
             flag = True
             while flag:
 
-                if dp.created_at != KingAgent.prev_date:
-                    KingAgent.current_date += pd.Timedelta(seconds=1)
+                if dp.created_at != Coordinator.prev_date:
+                    Coordinator.current_date += pd.Timedelta(seconds=1)
 
                     # communication every interval
                     self.communicate()
@@ -242,9 +242,9 @@ class KingAgent:
                     # save output every interval
                     self.save()
 
-                if dp.created_at <= KingAgent.current_date:
+                if dp.created_at <= Coordinator.current_date:
                     self.stream(dp)
-                    KingAgent.prev_date = dp.created_at
+                    Coordinator.prev_date = dp.created_at
                     flag = False
 
         self.handle_old_dps()
@@ -257,7 +257,7 @@ class KingAgent:
         :return: None
         """
         communication_residual = (time.mktime(
-            KingAgent.current_date.timetuple()) - self.first_communication_residual) % get_seconds(
+            Coordinator.current_date.timetuple()) - self.first_communication_residual) % get_seconds(
             self.communication_interval)
         if abs(communication_residual) <= 1e-7:
             self.handle_old_dps()
@@ -272,7 +272,7 @@ class KingAgent:
         :return: None
         """
         save_output_residual = (time.mktime(
-            KingAgent.current_date.timetuple()) - self.first_save_output_residual) % get_seconds(
+            Coordinator.current_date.timetuple()) - self.first_save_output_residual) % get_seconds(
             self.save_output_interval)
         if abs(save_output_residual) <= 1e-7:
             self.handle_old_dps()
@@ -286,20 +286,20 @@ class KingAgent:
         """
         self.save_model(
             os.path.join(os.getcwd(), 'outputs/multi_agent',
-                         'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
-                             KingAgent.dp_counter), 'model'))
+                         'X' + str(Coordinator.current_date).replace(':', '_') + '--' + str(
+                             Coordinator.dp_counter), 'model'))
         self.write_output_to_files(
             os.path.join(os.getcwd(), 'outputs/multi_agent',
-                         'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
-                             KingAgent.dp_counter), 'clusters'))
+                         'X' + str(Coordinator.current_date).replace(':', '_') + '--' + str(
+                             Coordinator.dp_counter), 'clusters'))
         self.write_topics_to_files(
             os.path.join(os.getcwd(), 'outputs/multi_agent',
-                         'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
-                             KingAgent.dp_counter), 'topics'))
+                         'X' + str(Coordinator.current_date).replace(':', '_') + '--' + str(
+                             Coordinator.dp_counter), 'topics'))
         self.write_tweet_ids_to_files(
             os.path.join(os.getcwd(), 'outputs/multi_agent',
-                         'X' + str(KingAgent.current_date).replace(':', '_') + '--' + str(
-                             KingAgent.dp_counter), 'clusters_tweet_ids'))
+                         'X' + str(Coordinator.current_date).replace(':', '_') + '--' + str(
+                             Coordinator.dp_counter), 'clusters_tweet_ids'))
         if self.verbose == 1:
             print(f'{Fore.YELLOW}{self.current_date} : Save Model and Outputs -> Number of agents : {len(self.agents)}')
 
@@ -381,9 +381,9 @@ class KingAgent:
 
             tf_idf_keywords = [self.data_agent.id_to_token[term_id] for term_id in
                                sorted(tf_idf, key=tf_idf.get, reverse=True)]
-            tf_idf_top_keywords = tf_idf_keywords[:self.max_no_keywords]
+            tf_idf_top_keywords = tf_idf_keywords[:self.no_keywords]
             topics_keywords.append((len(agent.dp_ids), tf_idf_top_keywords))
         topics_keywords.sort(reverse=True)
-        topics_keywords = topics_keywords[:self.max_no_topics]
+        topics_keywords = topics_keywords[:self.no_topics]
         topics_keywords = [keywords for (agent_size, keywords) in topics_keywords]
         return topics_keywords

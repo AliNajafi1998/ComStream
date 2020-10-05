@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime
 
 
-class DataAgent:
+class DataManager:
     token_id = 0
     current_dp_index = 0
     terms_global_frequency = 0
@@ -70,7 +70,7 @@ class DataAgent:
             user_id=user_id, status_id=status_id,
             created_at=created_at, is_verified=is_verified,
             favourites_count=favourites_count, retweet_count=retweet_count,
-            index_in_df=DataAgent.current_dp_index - 1
+            index_in_df=DataManager.current_dp_index - 1
         )
 
     def get_freq_dict(self, tweet: str) -> dict:
@@ -89,9 +89,9 @@ class DataAgent:
                 else:
                     freq_dict[self.token_to_id[token]] = 1
             else:
-                self.token_to_id[token] = DataAgent.token_id
-                self.id_to_token[DataAgent.token_id] = token
-                DataAgent.token_id += 1
+                self.token_to_id[token] = DataManager.token_id
+                self.id_to_token[DataManager.token_id] = token
+                DataManager.token_id += 1
         return freq_dict
 
     def get_next_dp(self):
@@ -99,8 +99,8 @@ class DataAgent:
         call the func to read the next dp
         :return: the object of the dp
         """
-        DataAgent.current_dp_index += 1
-        dp = self.get_dp(self.raw_data.iloc[[DataAgent.current_dp_index - 1]])
+        DataManager.current_dp_index += 1
+        dp = self.get_dp(self.raw_data.iloc[[DataManager.current_dp_index - 1]])
         self.data_points[dp.dp_id] = dp
         return dp
 
@@ -109,4 +109,4 @@ class DataAgent:
         check if we are not exceeding our maximum dps to process threshold
         :return: Boolean
         """
-        return not (DataAgent.current_dp_index >= self.count)
+        return not (DataManager.current_dp_index >= self.count)
