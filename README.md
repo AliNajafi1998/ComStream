@@ -8,7 +8,20 @@
 
 
 
+## How to use the code ? :hugs:
 
+Data file must be a pandas DataFrame having these columns : 
+
+ - text
+ - user_id
+ - created_at
+ - verified
+ - favourites_count
+
+For example : 
+![example](https://github.com/AliNajafi1998/ComStream/blob/dev-algo/data-example.png)
+
+**warning: Data must be sorted based on created_at in ascending order**
 
 
 
@@ -21,3 +34,4 @@
 - [Araz.G Shilabin](https://github.com/ArazShilabin)
 - [Ali Mohammad Pur](https://github.com/alimpfard)
 - [Meysam Asgari](https://github.com/MesiA)
+- [Rahim Dehkharghani](https://github.com/rdehkharghaniUB)
