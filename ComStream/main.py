@@ -1,12 +1,9 @@
-from Algo.Coordinator import Coordinator
-from Algo.Utils import get_distance_tf_idf_cosine
+from ComStream.Coordinator import Coordinator
+from ComStream.Utils import get_distance_tf_idf_cosine
 import os
-from pathlib import Path
 
 if __name__ == '__main__':
-    # 'Data/data_cleaned_1000k.pkl'
-    os.chdir("../Data")
-    data_path = os.path.join(os.getcwd(), 'FA/FACUP.pkl')
+    data_path = os.path.join('/ComStream/Data/data_cleaned.pkl')
     king = Coordinator(init_no_agents=5,
                        init_dp_per_agent=2,
                        save_output_interval="00:01:00",

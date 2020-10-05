@@ -1,6 +1,6 @@
 from typing import Callable
 
-from Algo.Utils import get_seconds
+from ComStream.Utils import get_seconds
 
 
 class Agent:
@@ -100,7 +100,8 @@ class Agent:
             pass
         else:
             if fade_rate > 1 or fade_rate < 0 or delete_faded_threshold > 1 or delete_faded_threshold < 0:
-                raise Exception(f'Invalid Fade Rate or delete_agent_weight_threshold : {fade_rate, delete_faded_threshold}')
+                message = f'Invalid Fade Rate or delete_agent_weight_threshold : {fade_rate, delete_faded_threshold}'
+                raise Exception(message)
             else:
                 self.weight = self.weight * (1 - fade_rate)
                 if self.weight < delete_faded_threshold:

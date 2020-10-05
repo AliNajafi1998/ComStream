@@ -1,5 +1,5 @@
-from Algo.Agent import Agent
-from Algo.Utils import get_distance_tf_idf_cosine, get_seconds
+from ComStream.Agent import Agent
+from ComStream.Utils import get_distance_tf_idf_cosine, get_seconds
 import random
 import re
 import time
@@ -8,7 +8,7 @@ import pandas as pd
 import os
 from math import log
 from threading import Thread
-from Algo.DataManager import DataManager
+from ComStream.DataManager import DataManager
 from colorama import Fore
 
 
@@ -226,9 +226,9 @@ class Coordinator:
             dp = self.data_agent.get_next_dp()
             if self.verbose != 0:
                 if (Coordinator.dp_counter + 1) % 1000 == 0:
-                    print(
-                        f'{Fore.CYAN}{Coordinator.current_date} : data point count = {Coordinator.dp_counter + 1} number '
-                        f'of agents : {len(self.agents)}')
+                    message = f'{Fore.CYAN}{Coordinator.current_date} : data point count = {Coordinator.dp_counter + 1}'
+                    message += f' number of agents : {len(self.agents)}'
+                    print(message)
             Coordinator.dp_counter += 1
             flag = True
             while flag:
