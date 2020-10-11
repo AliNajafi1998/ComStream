@@ -57,19 +57,14 @@ class DataManager:
         freq_dict = self.get_freq_dict(tweet)
 
         time_stamp = datetime.now()
-        user_id = dp['user_id'].values[0]
         status_id = dp['status_id'].values[0]
         created_at = pd.to_datetime(dp['created_at'].values[0])
-        is_verified = dp['verified'].values[0]
-        favourites_count = dp['favourites_count'].values[0]
-        retweet_count = 1
 
         return TwitterDataPoint(
             tweet=tweet,
             freq=freq_dict, time_stamp=time_stamp,
-            user_id=user_id, status_id=status_id,
-            created_at=created_at, is_verified=is_verified,
-            favourites_count=favourites_count, retweet_count=retweet_count,
+            status_id=status_id,
+            created_at=created_at,
             index_in_df=DataManager.current_dp_index - 1
         )
 
