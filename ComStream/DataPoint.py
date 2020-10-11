@@ -32,7 +32,6 @@ class TwitterDataPoint(DataPoint):
         :param time_stamp: the time the dp has come to system
         :param status_id: the id of the tweet
         :param created_at: the time the dp was created at
-        :param favourites_count: the amount of likes
         :param index_in_df: the index of the dp in the df
         :return: None
         """
