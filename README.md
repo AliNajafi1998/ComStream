@@ -3,7 +3,7 @@
 
 **In this project, we implemented a topic detection system on Twitter. This system reads tweets from a data stream, and assigns them to one of the existing clusters
 or a new one. Each cluster acts as an agent, which makes the proposed approach a multi-agent system. There is also a coordinator, who monitors the whole system and 
-coordinates the agents. This code has been written in python using several libraries such as ...... . The proposed approach has been experimented on two datasets:
+coordinates the agents. This code has been written in python using several libraries such as pandas and colorama . The proposed approach has been experimented on two datasets:
 The COVID-19 and the FA CUP. This project has been explained with greater detail in 
 a paper, publicly available in ... .**
 
@@ -14,7 +14,7 @@ a paper, publicly available in ... .**
 
 ## How to use the code ? :hugs:
 
-Data file must be a pandas DataFrame having these columns : 
+Data file must be a pandas DataFrame in pickle format having these columns : 
 
  - text
  - created_at
