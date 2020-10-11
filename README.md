@@ -18,6 +18,7 @@ Data file must be a pandas DataFrame having these columns :
 
  - text
  - created_at
+ - status_id
 
 For example : 
 ![example](https://github.com/AliNajafi1998/ComStream/blob/dev-algo/data-example.png)
