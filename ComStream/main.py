@@ -3,8 +3,9 @@ from ComStream.Utils import get_distance_tf_idf_cosine
 import os
 
 if __name__ == '__main__':
-    data_path = os.path.join('/ComStream/Data/data_cleaned.pkl')
-    king = Coordinator(init_no_agents=5,
+    data_path = os.path.join('/ComStream/Data/data_cleaned.pkl') # The file must be pickle file :) 
+    coordinator = Coordinator(
+                       init_no_agents=5,
                        init_dp_per_agent=2,
                        save_output_interval="00:01:00",
                        communication_interval="00:01:00",
@@ -20,4 +21,4 @@ if __name__ == '__main__':
                        dp_count=10000000,
                        verbose=1
                        )
-    king.train()
+    coordinator.train()
