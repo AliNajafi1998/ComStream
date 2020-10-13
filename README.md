@@ -3,9 +3,9 @@
 
 **In this project, we implemented a topic detection system on Twitter. This system reads tweets from a data stream, and assigns them to one of the existing clusters
 or a new one. Each cluster acts as an agent, which makes the proposed approach a multi-agent system. There is also a coordinator, who monitors the whole system and 
-coordinates the agents. This code has been written in python using several libraries such as ```pandas and colorama``` . The proposed approach has been experimented on two datasets:
+coordinates the agent.The proposed approach has been experimented on two datasets:
 The [COVID-19](https://www.kaggle.com/thelonecoder/labelled-1000k-covid19-dataset) and the [FA CUP](http://socialsensor.iti.gr/results/datasets/72-twitter-tdt-dataset). This project has been explained with greater detail in 
-a paper, publicly available in ... .**
+a paper, publicly available in [ComStreamClust](https://arxiv.org/abs/2010.05349) .**
 
 ## System Overview
 ![logo](https://github.com/AliNajafi1998/ComStream/blob/dev-algo/ComStream.jpg)
@@ -14,6 +14,7 @@ a paper, publicly available in ... .**
 
 ## How to use the code ? :hugs:
 
+You should install ```pandas and colorama``` . <br>
 Data file must be a pandas DataFrame in pickle format having these columns : 
 
  - text
