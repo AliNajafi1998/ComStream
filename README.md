@@ -1,6 +1,8 @@
 # ComStream ![](https://img.shields.io/badge/Python-3-informational?style=flat&logo=<LOGO_NAME>&logoColor=white&color=2bbc8a) ![](https://img.shields.io/badge/NLP-TopicDetection-informational?style=flat&logo=data:image/svg%2bxml;base64,<BASE64_DATA>)
 <br>
 
+### Introduction:
+
 **In this project, we implemented a topic detection system on Twitter. This system reads tweets from a data stream, and assigns them to one of the existing clusters
 or a new one. Each cluster acts as an agent, which makes the proposed approach a multi-agent system. There is also a coordinator, who monitors the whole system and 
 coordinates the agent.The proposed approach has been experimented on two datasets:
@@ -14,7 +16,6 @@ a paper, publicly available in [ComStreamClust](https://arxiv.org/abs/2010.05349
 
 ## How to use the code ? :hugs:
 
-You should install ```pandas and colorama``` . <br>
 Data file must be a pandas DataFrame in pickle format having these columns : 
 
  - text
@@ -26,7 +27,9 @@ For example :
 
 **warning: Data must be sorted based on created_at in ascending order**
 
-
+## Requirements
+   - pandas
+   - colorama
 
 
 
