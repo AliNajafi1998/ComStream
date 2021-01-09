@@ -1,5 +1,5 @@
-from ComStream.TF_IDF.Coordinator import Coordinator
-from ComStream.TF_IDF.Utils import get_distance_tf_idf_cosine
+from .Coordinator import Coordinator
+from .Utils import get_distance_tf_idf_cosine
 import os
 
 if __name__ == '__main__':

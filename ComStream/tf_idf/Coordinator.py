@@ -1,5 +1,5 @@
-from ComStream.TF_IDF.Agent import Agent
-from ComStream.TF_IDF.Utils import get_distance_tf_idf_cosine, get_seconds
+from .Agent import Agent
+from .Utils import get_distance_tf_idf_cosine, get_seconds
 import random
 import re
 import time
@@ -8,7 +8,7 @@ import pandas as pd
 import os
 from math import log
 from threading import Thread
-from ComStream.TF_IDF.DataManager import DataManager
+from .DataManager import DataManager
 from colorama import Fore
 
 
