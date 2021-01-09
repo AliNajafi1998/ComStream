@@ -1,6 +1,6 @@
 from typing import Callable
 
-from ComStream.Utils import get_seconds
+from ComStream.TF_IDF.Utils import get_seconds
 
 
 class Agent:

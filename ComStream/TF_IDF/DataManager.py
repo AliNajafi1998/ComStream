@@ -1,4 +1,4 @@
-from ComStream.DataPoint import TwitterDataPoint
+from ComStream.TF_IDF.DataPoint import TwitterDataPoint
 
 import pandas as pd
 from datetime import datetime
