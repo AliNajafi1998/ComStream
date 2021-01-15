@@ -102,7 +102,8 @@ class DataManager:
         :return: the object of the dp
         """
         DataManager.current_dp_index += 1
-        dp = self.get_dp(self.raw_data.iloc[[DataManager.current_dp_index - 1]])
+        dp = self.get_dp(self.raw_data.iloc[[DataManager.current_dp_index - 1]],
+                         self.embedding_vectors[DataManager.current_dp_index - 1])
         self.data_points[dp.dp_id] = dp
         return dp
 
