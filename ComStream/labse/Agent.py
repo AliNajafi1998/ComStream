@@ -82,3 +82,21 @@ class Agent:
             if abs((dp.created_at - self.coordinator.current_date).total_seconds()) > get_seconds(
                     self.coordinator.sliding_window_interval):
                 self.remove_data_point(dp_id)
+
+    def fade_agent_weight(self, fade_rate: float, delete_faded_threshold: float) -> None:
+        """
+        fade an agent's weight
+        :param fade_rate: the amount to be faded
+        :param delete_faded_threshold: delete the agent if it's weight gets less than this threshold
+        :return: None
+        """
+        if abs(fade_rate) < 1e-9:
+            pass
+        else:
+            if fade_rate > 1 or fade_rate < 0 or delete_faded_threshold > 1 or delete_faded_threshold < 0:
+                message = f'Invalid Fade Rate or delete_agent_weight_threshold : {fade_rate, delete_faded_threshold}'
+                raise Exception(message)
+            else:
+                self.weight = self.weight * (1 - fade_rate)
+                if self.weight < delete_faded_threshold:
+                    self.coordinator.remove_agent(self.agent_id)
