@@ -15,3 +15,4 @@ ComStream/LDA/output/
 .idea/
 ComStream/outputs/
 *.ipynb_checkpoints
+outputs
