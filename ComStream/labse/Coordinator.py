@@ -122,6 +122,7 @@ class Coordinator:
                 print('Sth went wrong!')
 
         for dp_id, distance, agent_id in outliers_to_join:
+            # print(distance)
             if distance > self.assign_radius:
                 new_agent_id = self.create_agent()
                 self.agents[new_agent_id].add_data_point(self.data_agent.data_points[dp_id])
@@ -262,10 +263,10 @@ class Coordinator:
         save the model, agent dps texts, agent dps ids, agent top topics
         :return: None
         """
-        self.save_model(
-            os.path.join(os.getcwd(), 'outputs/multi_agent',
-                         'X' + str(Coordinator.current_date).replace(':', '_') + '--' + str(
-                             Coordinator.dp_counter), 'model'))
+        # self.save_model(
+        #     os.path.join(os.getcwd(), 'outputs/multi_agent',
+        #                  'X' + str(Coordinator.current_date).replace(':', '_') + '--' + str(
+        #                      Coordinator.dp_counter), 'model'))
         self.write_output_to_files(
             os.path.join(os.getcwd(), 'outputs/multi_agent',
                          'X' + str(Coordinator.current_date).replace(':', '_') + '--' + str(
