@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import random
 import re
@@ -9,6 +10,7 @@ from .DataManager import DataManager
 from .Agent import Agent
 from colorama import Fore
 from .Utils import get_seconds
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 class Coordinator:
@@ -344,4 +346,41 @@ class Coordinator:
                     file.write(str(tweet_id) + '\n')
 
     def get_topics_of_agents(self):
-        pass
+        topics_keywords = []
+        full_corpus = []
+        agent_ids_size = []  # (agent_id, size)
+        for agent_id, agent_object in self.agents.items():
+            agent_ids_size.append((agent_id, len(agent_object.dp_ids)))
+            for dp_id in agent_object.dp_ids:
+                dp_object = self.data_agent.data_points[dp_id]
+                full_corpus.append(dp_object.tweet)
+        vectorizer = TfidfVectorizer()
+        # vectorized_corpus.shape (index of corpus, score of each word
+        # (all the words evens words that don't exist in this sentence))
+        vectorizer.fit(full_corpus)
+        vocab = vectorizer.get_feature_names()  # ind -> word
+
+        # get the biggest agents:
+        agent_ids_size.sort(key=lambda x: x[1], reverse=True)
+        candidate_agent_ids_size = agent_ids_size[:min(self.no_topics, len(agent_ids_size))]
+
+        # get scores for each word in every agent
+        for agent_id, agent_size in candidate_agent_ids_size:
+            agent_corpus = []
+            agent_object = self.agents[agent_id]
+            for dp_id in agent_object.dp_ids:
+                dp_object = self.data_agent.data_points[dp_id]
+                agent_corpus.append(dp_object.tweet)
+            vectorized_agent_corpus = vectorizer.transform(agent_corpus)
+            vectorized_agent = np.sum(vectorized_agent_corpus, axis=0)
+            agent_word2score = {}
+            for index in range(len(vectorized_agent)):
+                agent_word2score[vocab[index]] = vectorized_agent[index]
+            # sort and choose the top no_keywords
+            sorted_keys = list(sorted(agent_word2score, key=agent_word2score.get, reverse=True))  # get the sorted keys
+            sorted_keys = sorted_keys[:min(self.no_keywords, len(sorted_keys))]  # get best keywords
+            topics_keywords.append(sorted_keys)
+
+        del vocab
+        del vectorizer
+        return topics_keywords
