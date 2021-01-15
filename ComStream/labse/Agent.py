@@ -37,7 +37,8 @@ class Agent:
         :return: None
         """
         try:
-            self.centroid = (self.centroid * len(self.dp_ids) - self.coordinator.data_agent.data_points[dp_id]) / len(
+            self.centroid = (self.centroid * len(self.dp_ids) - self.coordinator.data_agent.data_points[
+                dp_id].embedding_vec) / len(
                 self.dp_ids)
             self.dp_ids.remove(dp_id)
             if self.weight <= 0:
