@@ -1,4 +1,5 @@
 import numpy as np
+import scipy
 import pandas as pd
 import random
 import re
@@ -366,7 +367,6 @@ class Coordinator:
         candidate_agent_ids_size = agent_ids_size[:min(self.no_topics, len(agent_ids_size))]
 
         # get scores for each word in every agent
-        print(f"Start agents: {len(candidate_agent_ids_size)}")
         for agent_id, agent_size in candidate_agent_ids_size:
             agent_corpus = []
             agent_object = self.agents[agent_id]
@@ -375,13 +375,12 @@ class Coordinator:
                 agent_corpus.append(dp_object.tweet)
             vectorized_agent_corpus = vectorizer.transform(agent_corpus)
 
+            cx = scipy.sparse.coo_matrix(vectorized_agent_corpus)
             agent_word2score = {}
-            for index_dp in range(agent_size):
-                for index_word in range(len(vocab)):
-                    agent_word2score[vocab[index_word]] = agent_word2score.get(vocab[index_word], 0) + \
-                                                          vectorized_agent_corpus[index_dp, index_word]
+            for i, j, v in zip(cx.row, cx.col, cx.data):
+                agent_word2score[vocab[j]] = agent_word2score.get(vocab[j], 0.0) + v
+
             # sort and choose the top no_keywords
-            # print(agent_word2score)
             sorted_keys = list(sorted(agent_word2score, key=agent_word2score.get, reverse=True))  # get the sorted keys
             sorted_keys = sorted_keys[:min(self.no_keywords, len(sorted_keys))]  # get best keywords
             topics_keywords.append(sorted_keys)
