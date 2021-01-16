@@ -366,6 +366,7 @@ class Coordinator:
         candidate_agent_ids_size = agent_ids_size[:min(self.no_topics, len(agent_ids_size))]
 
         # get scores for each word in every agent
+        print(f"Start agents: {len(candidate_agent_ids_size)}")
         for agent_id, agent_size in candidate_agent_ids_size:
             agent_corpus = []
             agent_object = self.agents[agent_id]
@@ -373,11 +374,14 @@ class Coordinator:
                 dp_object = self.data_agent.data_points[dp_id]
                 agent_corpus.append(dp_object.tweet)
             vectorized_agent_corpus = vectorizer.transform(agent_corpus)
-            vectorized_agent = np.sum(vectorized_agent_corpus, axis=0)
+
             agent_word2score = {}
-            for index in range(len(vectorized_agent)):
-                agent_word2score[vocab[index]] = vectorized_agent[index]
+            for index_dp in range(agent_size):
+                for index_word in range(len(vocab)):
+                    agent_word2score[vocab[index_word]] = agent_word2score.get(vocab[index_word], 0) + \
+                                                          vectorized_agent_corpus[index_dp, index_word]
             # sort and choose the top no_keywords
+            # print(agent_word2score)
             sorted_keys = list(sorted(agent_word2score, key=agent_word2score.get, reverse=True))  # get the sorted keys
             sorted_keys = sorted_keys[:min(self.no_keywords, len(sorted_keys))]  # get best keywords
             topics_keywords.append(sorted_keys)
