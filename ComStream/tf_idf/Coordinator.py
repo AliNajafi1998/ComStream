@@ -34,6 +34,7 @@ class Coordinator:
                  data_file_path: str,
                  generic_distance=get_distance_tf_idf_cosine,
                  data_start_date=pd.to_datetime('2020-03-29T00:00:00Z'),
+                 is_parallel=True,
                  verbose=0
                  ):
         """
@@ -84,6 +85,7 @@ class Coordinator:
         self.global_idf_count = {}
         self.first_communication_residual = None
         self.first_save_output_residual = None
+        self.is_parallel = is_parallel
         self.verbose = verbose
         Coordinator.current_date = data_start_date
         Coordinator.prev_date = Coordinator.current_date + pd.Timedelta(days=-1)
@@ -114,14 +116,18 @@ class Coordinator:
         :return: None
         """
         outliers_id = []
-        my_threads = []
-        for agent_id in self.agents:
-            t = Thread(target=self.agents[agent_id].get_outliers, args=[outliers_id])
-            my_threads.append(t)
-            t.daemon = True
-            t.start()
-        for t in my_threads:
-            t.join()
+        if self.is_parallel:
+            my_threads = []
+            for agent_id in self.agents:
+                t = Thread(target=self.agents[agent_id].get_outliers, args=[outliers_id])
+                my_threads.append(t)
+                t.daemon = True
+                t.start()
+            for t in my_threads:
+                t.join()
+        else:
+            for agent_id in self.agents:
+                self.agents[agent_id].get_outliers(outliers_id)
         agents_to_remove = []
         for agent_id in self.agents:
             if len(self.agents[agent_id].dp_ids) < 1:
