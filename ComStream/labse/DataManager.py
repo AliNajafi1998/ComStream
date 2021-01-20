@@ -27,6 +27,7 @@ class DataManager:
         self.global_freq = {}
         self.count = count
         self.data_points = {}
+        self.max_data = 0
 
         self.load_data(data_file_path, data_embedding_path, count=count)
 
@@ -40,6 +41,9 @@ class DataManager:
         """
         self.raw_data = pd.read_pickle(file_path).reset_index().head(count)
         self.embedding_vectors = np.load(data_embedding_path)[:count]
+        if len(self.raw_data) != len(self.embedding_vectors):
+            raise ValueError("the data and their embeddings don't have the same length.")
+        self.max_data = len(self.raw_data)
 
     def get_dp(self, dp: pd.DataFrame, embedding_vec):
         """
@@ -112,4 +116,6 @@ class DataManager:
         check if we are not exceeding our maximum dps to process threshold
         :return: Boolean
         """
+        if self.max_data <= DataManager.current_dp_index + 1:
+            return False
         return not (DataManager.current_dp_index >= self.count)
