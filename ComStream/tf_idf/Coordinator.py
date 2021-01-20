@@ -7,7 +7,7 @@ import pickle
 import pandas as pd
 import os
 from math import log
-from threading import Thread
+import multiprocessing
 from .DataManager import DataManager
 from colorama import Fore
 
@@ -117,14 +117,18 @@ class Coordinator:
         """
         outliers_id = []
         if self.is_parallel:
-            my_threads = []
-            for agent_id in self.agents:
-                t = Thread(target=self.agents[agent_id].get_outliers, args=[outliers_id])
-                my_threads.append(t)
-                t.daemon = True
-                t.start()
-            for t in my_threads:
-                t.join()
+            cpu_count = multiprocessing.cpu_count() - 1
+            agent_ids = list(self.agents.keys())
+            start = 0
+            while True:
+                stop = start + cpu_count
+                if stop < len(agent_ids):
+                    self.parallel_outlier_getting(agent_ids, start, outliers_id, stop)
+                else:
+                    stop = len(agent_ids)
+                    self.parallel_outlier_getting(agent_ids, start, outliers_id, stop)
+                    break
+                start = stop
         else:
             for agent_id in self.agents:
                 self.agents[agent_id].get_outliers(outliers_id)
@@ -155,6 +159,17 @@ class Coordinator:
                 self.agents[new_agent_id].add_data_point(self.data_agent.data_points[dp_id])
             else:
                 self.agents[agent_id].add_data_point(self.data_agent.data_points[dp_id])
+
+    def parallel_outlier_getting(self, agent_ids, index, outliers_id, stop):
+        my_processes = []
+        for agent_id in agent_ids[index:stop]:
+            p = multiprocessing.Process(
+                target=self.agents[agent_id].get_outliers, args=(outliers_id,))
+            my_processes.append(p)
+            p.daemon = True
+            p.start()
+        for p in my_processes:
+            p.join()
 
     def init_agents(self):
         """
