@@ -12,9 +12,9 @@ def get_seconds(time: str):
     return seconds
 
 
-def get_distance_cosine(coordinator, vec_1, vec_2):
+def get_distance_cosine(vec_1, vec_2):
     return (1 - (np.dot(vec_1, vec_2.T)) / (np.linalg.norm(vec_1) * np.linalg.norm(vec_2))) / 2.0
 
 
-def get_distance_euclidean(coordinator, vec_1, vec_2):
+def get_distance_euclidean(vec_1, vec_2):
     return np.sqrt(np.sum((vec_1 - vec_2) ** 2))

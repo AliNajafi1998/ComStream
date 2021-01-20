@@ -50,7 +50,7 @@ class Agent:
         except ValueError:
             print(f'There is no such data point in Agent : {dp_id}')
 
-    def get_outliers(self, out) -> None:
+    def get_outliers(self) -> []:
         """
         getting outliers of agent
         :return: list of ids of outliers
@@ -58,20 +58,19 @@ class Agent:
         outliers_id = []
         for dp_id in self.dp_ids:
             dp = self.coordinator.data_agent.data_points[dp_id]
-            distance = self.get_distance(self.coordinator, dp.embedding_vec)
+            distance = self.generic_distance_function(dp.embedding_vec, self.centroid)
             if distance > self.outlier_threshold:
                 self.remove_data_point(dp_id, outlier=True)
                 outliers_id.append(dp_id)
-        out.extend(outliers_id)
+        return outliers_id
 
-    def get_distance(self, coordinator, embedding: np.array):
+    def get_distance(self, embedding: np.array):
         """
         calls the function that finds the distance
-        :param coordinator: the object of KingAgent
         :param embedding: embedding vector of datapoint
         :return: (float) returns the distance of the dp and this agent
         """
-        return self.generic_distance_function(coordinator, embedding, self.centroid)
+        return self.generic_distance_function(embedding, self.centroid)
 
     def handle_old_dps(self):
         """

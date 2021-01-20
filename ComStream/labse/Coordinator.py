@@ -1,3 +1,4 @@
+import concurrent.futures
 import multiprocessing
 import scipy
 import pandas as pd
@@ -87,26 +88,31 @@ class Coordinator:
             self.agents[agent_id].remove_data_point(dp_id)
         del self.agents[agent_id]
 
+    def get_outliers(self, agent) -> []:
+        """
+        getting outliers of agent
+        :return: list of ids of outliers
+        """
+        outliers_id = []
+        for dp_id in agent.dp_ids:
+            dp = agent.coordinator.data_agent.data_points[dp_id]
+            distance = agent.generic_distance_function(dp.embedding_vec, agent.centroid)
+            if distance > agent.outlier_threshold:
+                agent.remove_data_point(dp_id, outlier=True)
+                outliers_id.append(dp_id)
+        return outliers_id
+
     def handle_outliers(self) -> None:
         """
         looks at all the dps and if their distance from their assigned agent is more than outlier_threshold, then
         if there is another agent which is within the dps radius reassigns it, else creates a new agent for the dp
         :return: None
         """
-        outliers_id = []
+        outliers_id = None
+        agents = list(self.agents.values())
         if self.is_parallel:
-            cpu_count = multiprocessing.cpu_count() - 1
-            agent_ids = list(self.agents.keys())
-            start = 0
-            while True:
-                stop = start + cpu_count
-                if stop < len(agent_ids):
-                    self.parallel_outlier_getting(agent_ids, start, outliers_id, stop)
-                else:
-                    stop = len(agent_ids)
-                    self.parallel_outlier_getting(agent_ids, start, outliers_id, stop)
-                    break
-                start = stop
+            with concurrent.futures.ProcessPoolExecutor(max_workers=multiprocessing.cpu_count() - 1) as executor:
+                outliers_id = sum(list(executor.map(self.get_outliers, agents)), [])
         else:
             for agent_id in self.agents:
                 self.agents[agent_id].get_outliers(outliers_id)
@@ -123,7 +129,7 @@ class Coordinator:
             min_distance = float('infinity')
             similar_agent_id = -1
             for agent_id, agent in self.agents.items():
-                distance = agent.get_distance(self, self.data_agent.data_points[outlier_id].embedding_vec)
+                distance = agent.get_distance(self.data_agent.data_points[outlier_id].embedding_vec)
                 if distance <= min_distance:
                     min_distance = distance
                     similar_agent_id = agent_id
@@ -188,7 +194,7 @@ class Coordinator:
         min_distance = float('infinity')
         similar_agent_id = -1
         for agent_id, agent in self.agents.items():
-            distance = agent.get_distance(self, self.data_agent.data_points[dp.dp_id].embedding_vec)
+            distance = agent.get_distance(self.data_agent.data_points[dp.dp_id].embedding_vec)
             if distance <= min_distance:
                 min_distance = distance
                 similar_agent_id = agent_id
