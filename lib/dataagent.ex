@@ -20,38 +20,38 @@ defmodule DataAgent do
       throw("Data and Embeddings don't have the same length!")
     end
 
-    IO.warn("Started inner loop")
+    # IO.warn("Started inner loop")
     inner_loop(%DataAgent{data: raw_data, embeddings: raw_embeddings}, count, epsilon)
   end
 
   defp inner_loop(agent, count, epsilon) do
     receive do
       {:get_next_dp, pid} ->
-        IO.warn("Got request for DP!")
+        # IO.warn("Got request for DP!")
 
         case get_next_dp(agent) do
           {:ok, data, agent} ->
-            IO.puts("Responding with #{inspect(data)}")
+            # IO.puts("Responding with #{inspect(data)}")
             send(pid, {:datapoint, data})
             inner_loop(agent, count - 1, epsilon)
 
           {:fail, agent} ->
-            IO.puts("Got nothing bruh")
+            # IO.puts("Got nothing bruh")
             send(pid, {:fail})
             inner_loop(agent, count, epsilon)
         end
 
       {:specific_data_point, pid, dp_id} ->
-        IO.warn("Got request for specific DP!")
+        # IO.warn("Got request for specific DP!")
 
         case Map.get(agent.datapoints, dp_id) do
           nil ->
-            IO.puts("Got nothing bruh")
+            # IO.puts("Got nothing bruh")
             send(pid, {:fail})
             inner_loop(agent, count, epsilon)
 
           data ->
-            IO.puts("Responding with #{inspect(data)}")
+            # IO.puts("Responding with #{inspect(data)}")
             send(pid, {:datapoint, data})
             inner_loop(agent, count - 1, epsilon)
         end
@@ -75,7 +75,7 @@ defmodule DataAgent do
 
   defp get_twitter_dp(agent, idx, data, embeddings) do
     tweet = data["text"]
-    created_at = DateTime.from_iso8601(data["created_at"])
+    {:ok, created_at, _} = DateTime.from_iso8601(data["created_at"])
     {agent, freqs} = get_freq_dict(agent, tweet)
     timestamp = DateTime.to_unix(DateTime.now!("Etc/UTC"))
     embedding_vec = Vector.from_list(embeddings)

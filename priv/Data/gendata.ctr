@@ -4,12 +4,13 @@ import Library/Data/Map.
 var map is \:x x toMap.
 var list is {:*xs ^xs.}.
 
+
 var data is Array
-    < (map[{ text => 'hello friends this is a test'. created_at => '20210204T095011Z'. }])
-    ; (map[{ text => 'hi there'.                     created_at => '20210204T095011Z'. }])
-    ; (map[{ text => 'well hello friends'.           created_at => '20210204T095011Z'. }])
-    ; (map[{ text => 'oh my gawd'.                   created_at => '20210204T095011Z'. }])
-    ; (map[{ text => 'natsuiro matsuri yaaay'.       created_at => '20210204T095011Z'. }])
+    < (map[{ text => 'hello friends this is a test'. created_at => Shell date: '--iso-8601=second', trim. }])
+    ; (map[{ text => 'hi there'.                     created_at => Shell date: '--iso-8601=second', trim. }])
+    ; (map[{ text => 'well hello friends'.           created_at => Shell date: '--iso-8601=second', trim. }])
+    ; (map[{ text => 'oh my gawd'.                   created_at => Shell date: '--iso-8601=second', trim. }])
+    ; (map[{ text => 'natsuiro matsuri yaaay'.       created_at => Shell date: '--iso-8601=second', trim. }])
     .
 
 var embeddings is Array

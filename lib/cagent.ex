@@ -119,7 +119,7 @@ defmodule CAgent do
 
   defp handle_old_dps(agent, current_date) do
     Enum.reduce(Map.values(agent.dps), agent, fn dp, agent ->
-      if dp.created_at - current_date > agent.sliding_window_interval do
+      if Time.from_seconds_after_midnight(DateTime.diff(dp.created_at, current_date)) > agent.sliding_window_interval do
         remove_data_point(agent, dp)
       else
         agent

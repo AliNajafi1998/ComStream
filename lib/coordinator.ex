@@ -132,6 +132,7 @@ defmodule Coordinator do
 
   defp get_datapoint(coordinator, dp_id) do
     send(coordinator.data_agent, {:specific_data_point, self(), dp_id})
+
     receive do
       {:datapoint, msg} -> msg
       {:fail} -> throw("Unknown datapoint")
@@ -142,49 +143,150 @@ defmodule Coordinator do
 
   def handle_outliers(coordinator) do
     Enum.map(coordinator.agents, fn pid -> send(pid, {:yoink_outliers, self()}) end)
-    {outliers, dead_agents} = receive_outliers_from(for(x <- coordinator.agents, into: %{}, do: {x, nil}))
-    coordinator = %Coordinator { coordinator | agents: Enum.filter(coordinator.agents, fn el -> not Enum.member?(dead_agents, el) end) }
-    Enum.reduce(outliers, [], fn outlier_id, outliers_to_join ->
-      Enum.map(coordinator.agents, fn pid -> send(pid, {:get_distance, self(), get_datapoint(coordinator, outlier_id)}) end)
-      distances = receive_distances_from(for(x <- coordinator.agents, into: %{}, do: {x, nil}))
-      {similar_agent_id, min_distance} = Enum.reduce(distances, {nil, Float.parse("infinity")}, fn {agent_id, distance}, {similar_agent_id, min_distance} ->
-        if min_distance >= distance do
-          {agent_id, distance}
-        else
-          {similar_agent_id, min_distance}
-        end
+
+    {outliers, dead_agents} =
+      receive_outliers_from(for(x <- coordinator.agents, into: %{}, do: {x, nil}))
+
+    coordinator = %Coordinator{
+      coordinator
+      | agents: Enum.filter(coordinator.agents, fn el -> not Enum.member?(dead_agents, el) end)
+    }
+
+    stream_all(coordinator, for(x <- outliers, do: get_datapoint(coordinator, x)))
+  end
+
+  def fade_agent_weights(coordinator) do
+    Enum.reduce(coordinator.agents, coordinator, fn agent, coordinator ->
+      send(
+        agent,
+        {:fade_agent_weight, self(), coordinator.agent_fading_threshold,
+         coordinator.delete_agent_weight_threshold}
+      )
+
+      coordinator
+    end)
+  end
+
+  def handle_dead_notifications(coordinator, pids) do
+    if Enum.empty?(Map.keys(pids)) do
+      coordinator
+    else
+      receive do
+        {:died, pid} ->
+          coordinator = %Coordinator{
+            coordinator
+            | agents: Enum.filter(coordinator.agents, fn x -> x != pid end)
+          }
+
+          pids = Map.delete(pids, pid)
+          handle_dead_notifications(coordinator, pids)
+      after
+        1000 ->
+          coordinator
+      end
+    end
+  end
+
+  def communicate(coordinator) do
+    cd = DateTime.to_unix(DateTime.from_naive!(coordinator.current_date, "Etc/UTC"))
+
+    if abs(rem(cd, Time.diff(coordinator.communication_interval, ~T(00:00:00)))) < 0.0e-7 do
+      coordinator
+      |> handle_old_dps()
+      |> handle_outliers()
+      |> fade_agent_weights()
+      |> handle_dead_notifications(for(x <- coordinator.agents, into: %{}, do: {x, nil}))
+    else
+      coordinator
+    end
+  end
+
+  def stream_all(coordinator, dps) do
+    Enum.reduce(dps, [], fn dp, outliers_to_join ->
+      Enum.map(coordinator.agents, fn pid ->
+        send(pid, {:get_distance, self(), dp})
       end)
+
+      distances = receive_distances_from(for(x <- coordinator.agents, into: %{}, do: {x, nil}))
+
+      {similar_agent_id, min_distance} =
+        Enum.reduce(distances, {nil, Float.parse("infinity")}, fn {agent_id, distance},
+                                                                  {similar_agent_id, min_distance} ->
+          if min_distance >= distance do
+            {agent_id, distance}
+          else
+            {similar_agent_id, min_distance}
+          end
+        end)
 
       if is_nil(similar_agent_id) do
         IO.warn("Something went wrong")
         outliers_to_join
       else
-        outliers_to_join ++ [{outlier_id, min_distance, similar_agent_id}]
+        outliers_to_join ++ [{dp, min_distance, similar_agent_id}]
       end
     end)
-    |> Enum.reduce(coordinator, fn {dp_id, distance, agent_id}, coordinator ->
+    |> Enum.reduce(coordinator, fn {dp, distance, agent_id}, coordinator ->
       if distance > coordinator.assign_radius do
         new_agent = create_agent(coordinator, length(coordinator.agents))
-        coordinator = %Coordinator { coordinator | agents: coordinator.agents ++ [new_agent]}
-        send(new_agent, {:add_data_point, get_datapoint(coordinator, dp_id)})
+        coordinator = %Coordinator{coordinator | agents: coordinator.agents ++ [new_agent]}
+        send(new_agent, {:add_data_point, dp})
         coordinator
       else
-        send(agent_id, {:add_data_point, get_datapoint(coordinator, dp_id)})
+        send(agent_id, {:add_data_point, dp})
         coordinator
       end
     end)
   end
 
+  def stream(coordinator, dp) do
+    stream_all(coordinator, [dp])
+  end
 
   def train_loop(coordinator) do
-    coordinator
+    Enum.reduce_while(Stream.repeatedly(fn -> nil end), coordinator, fn _, coordinator ->
+      send(coordinator.data_agent, {:get_next_dp, self()})
+
+      receive do
+        {:datapoint, dp} ->
+          coordinator =
+            Enum.reduce_while(Stream.repeatedly(fn -> nil end), coordinator, fn _, coordinator ->
+              if dp.created_at > coordinator.prev_date do
+                coordinator = %Coordinator{
+                  coordinator
+                  | current_date: NaiveDateTime.add(coordinator.current_date, 1)
+                }
+
+                coordinator
+                |> communicate()
+                |> save()
+                |> (fn x -> {:cont, x} end).()
+              else
+                coordinator
+                |> stream(dp)
+                |> (fn x -> {:halt, %Coordinator{x | prev_date: dp.created_at}} end).()
+              end
+            end)
+
+          {:cont, coordinator}
+
+        {:fail} ->
+          # That's all the DPs!
+          {:halt, coordinator}
+      end
+    end)
   end
 
   def handle_old_dps(coordinator) do
+    Enum.map(coordinator.agents, fn pid ->
+      send(pid, {:handle_old_dps, coordinator.current_date})
+    end)
+
     coordinator
   end
 
   def save(coordinator) do
+    # FIXME: Implement me!
     coordinator
   end
 
