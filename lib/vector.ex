@@ -11,8 +11,8 @@ defmodule Vector do
     :array.sparse_map(fn i, a -> (a + :array.get(i, y)) / 2 end, x)
   end
 
-  def normal(_x) do
-    1
+  def normal(x) do
+    :math.sqrt(:array.sparse_foldl(fn _, x, acc -> acc + x * x end, 1.0, x))
   end
 
   def dot(x, y) do

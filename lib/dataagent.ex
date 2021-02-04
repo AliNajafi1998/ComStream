@@ -56,6 +56,10 @@ defmodule DataAgent do
             inner_loop(agent, count - 1, epsilon)
         end
 
+      {:dump_tokens} ->
+        IO.inspect(agent.token_map)
+        inner_loop(agent, count, epsilon)
+
       _ ->
         IO.warn("Unknown message")
         inner_loop(agent, count - 1, epsilon)
@@ -99,7 +103,7 @@ defmodule DataAgent do
     Enum.reduce(String.split(tweet), {agent, %{}}, fn token, {agent, freqs} ->
       token_map = Map.update(agent.token_map, token, map_size(agent.token_map) + 1, fn v -> v end)
 
-      freqs = Map.update(freqs, Map.get(token_map, token), 0, fn value -> value + 1 end)
+      freqs = Map.update(freqs, Map.get(token_map, token), 1, fn value -> value + 1 end)
       {%DataAgent{agent | token_map: token_map}, freqs}
     end)
   end

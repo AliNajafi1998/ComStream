@@ -24,6 +24,8 @@ defmodule ComStream do
         x -> x
       end
     end)
+
+    send(coordinator.data_agent, {:dump_tokens})
   end
 
   def main() do
