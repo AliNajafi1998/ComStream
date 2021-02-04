@@ -29,7 +29,8 @@ defmodule Coordinator do
         %CAgent{
           id: id,
           generic_distance_function: coordinator.generic_distance_function,
-          outlier_threshold: coordinator.outlier_threshold
+          outlier_threshold: coordinator.outlier_threshold,
+          sliding_window_interval: coordinator.sliding_window_interval
         }
       ])
 
@@ -73,7 +74,8 @@ defmodule Coordinator do
         dp =
           receive do
             {:datapoint, msg} -> msg
-            true -> throw("What the fuck is this?")
+            {:fail} -> throw("Request failed :(")
+            _ -> throw("What the fuck is this?")
           after
             1000 -> throw("No datapoint after 1s!")
           end

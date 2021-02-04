@@ -3,8 +3,16 @@ defmodule Vector do
     :array.new(size, [{:default, 0.0}])
   end
 
-  def midpoint(x, _y) do
-    x
+  def midpoint(x, y) do
+    :array.sparse_map(fn i, a -> (a + :array.get(i, y)) / 2 end, x)
+  end
+
+  def normal(_x) do
+    1
+  end
+
+  def dot(x, y) do
+    :array.sparse_foldl(fn i, x, a -> a + x * :array.get(y, i) end, 0, x)
   end
 
   def divide(v, s) do

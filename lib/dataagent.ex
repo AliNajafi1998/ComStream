@@ -1,26 +1,86 @@
+defmodule TwitterDataPoint do
+  defstruct tweet: nil,
+            freq: nil,
+            timestamp: nil,
+            status_id: 0,
+            created_at: 0,
+            embedding_vec: nil
+end
+
 defmodule DataAgent do
+  defstruct data: [], embeddings: [], token_map: %{}
+
   @spec loop(String.t(), String.t(), pos_integer, float) :: no_return
   def loop(data_file_path, embedding_path, count, epsilon \\ 0.00000001) do
     raw_data = :erlang.binary_to_term(File.read!(data_file_path))
     raw_embeddings = :erlang.binary_to_term(File.read!(embedding_path))
+
+    if length(raw_data) != length(raw_embeddings) do
+      throw("Data and Embeddings don't have the same length!")
+    end
+
     IO.warn("Started inner loop")
-    inner_loop(raw_data, raw_embeddings, count, epsilon)
+    inner_loop(%DataAgent{data: raw_data, embeddings: raw_embeddings}, count, epsilon)
   end
 
-  defp inner_loop(data, embeddings, count, epsilon) do
+  defp inner_loop(agent, count, epsilon) do
     receive do
       {:get_next_dp, pid} ->
         IO.warn("Got request for DP!")
-        get_next_dp(pid)
-        inner_loop(data, embeddings, count - 1, epsilon)
+
+        case get_next_dp(agent) do
+          {:ok, data, agent} ->
+            IO.puts("Responding with #{inspect(data)}")
+            send(pid, {:datapoint, data})
+            inner_loop(agent, count - 1, epsilon)
+
+          {:fail, agent} ->
+            IO.puts("Got nothing bruh")
+            send(pid, {:fail})
+            inner_loop(agent, count, epsilon)
+        end
 
       true ->
         IO.warn("Unknown message")
-        inner_loop(data, embeddings, count - 1, epsilon)
+        inner_loop(agent, count - 1, epsilon)
     end
   end
 
-  defp get_next_dp(pid) do
-    send(pid, {:datapoint, %{embedding_vec: Vector.new(4), dp_id: 0, created_at: 0}})
+  defp get_next_dp(agent) do
+    if Enum.empty?(agent.data) do
+      {:fail, agent}
+    else
+      [data_head | data_tail] = agent.data
+      [embedding_head | embedding_tail] = agent.embeddings
+      {agent, dp} = get_twitter_dp(agent, data_head, embedding_head)
+      {:ok, dp, %DataAgent{agent | data: data_tail, embeddings: embedding_tail}}
+    end
+  end
+
+  defp get_twitter_dp(agent, data, embeddings) do
+    tweet = data["text"]
+    created_at = DateTime.from_iso8601(data["created_at"])
+    {agent, freqs} = get_freq_dict(agent, tweet)
+    timestamp = DateTime.to_unix(DateTime.now!("Etc/UTC"))
+
+    {agent,
+     %TwitterDataPoint{
+       tweet: tweet,
+       freq: freqs,
+       timestamp: timestamp,
+       status_id: data["status_id"],
+       embedding_vec: embeddings,
+       created_at: created_at
+     }}
+  end
+
+  defp get_freq_dict(agent, tweet) do
+    Enum.reduce(String.split(tweet), {agent, %{}}, fn token, {agent, freqs} ->
+      token_map =
+        Map.update(agent.token_map, token, map_size(agent.token_map) + 1, fn v -> v end)
+
+      freqs = Map.update(freqs, Map.get(token_map, token), 0, fn value -> value + 1 end)
+      {%DataAgent{agent | token_map: token_map}, freqs}
+    end)
   end
 end

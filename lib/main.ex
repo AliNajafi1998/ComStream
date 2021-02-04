@@ -8,7 +8,7 @@ defmodule ComStream do
     embedding_path = Path.join(app_dir, "Data/FA_Embedding.npy")
 
     coordinator = %Coordinator{
-      generic_distance_function: :get_distance_cosine,
+      generic_distance_function: { DistanceFunction, :get_cosine_distance },
       data_file_path: data_path,
       embedding_file_path: embedding_path,
       verbose: true
