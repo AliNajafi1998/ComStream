@@ -9,7 +9,7 @@ defmodule TwitterDataPoint do
 end
 
 defmodule DataAgent do
-  defstruct data: [], embeddings: [], token_map: %{}
+  defstruct data: [], embeddings: [], token_map: %{}, datapoints: %{}
 
   @spec loop(String.t(), String.t(), pos_integer, float) :: no_return
   def loop(data_file_path, embedding_path, count, epsilon \\ 0.00000001) do
@@ -41,7 +41,22 @@ defmodule DataAgent do
             inner_loop(agent, count, epsilon)
         end
 
-      true ->
+      {:specific_data_point, pid, dp_id} ->
+        IO.warn("Got request for specific DP!")
+
+        case Map.get(agent.datapoints, dp_id) do
+          nil ->
+            IO.puts("Got nothing bruh")
+            send(pid, {:fail})
+            inner_loop(agent, count, epsilon)
+
+          data ->
+            IO.puts("Responding with #{inspect(data)}")
+            send(pid, {:datapoint, data})
+            inner_loop(agent, count - 1, epsilon)
+        end
+
+      _ ->
         IO.warn("Unknown message")
         inner_loop(agent, count - 1, epsilon)
     end
@@ -65,23 +80,24 @@ defmodule DataAgent do
     timestamp = DateTime.to_unix(DateTime.now!("Etc/UTC"))
     embedding_vec = Vector.from_list(embeddings)
 
+    dp = %TwitterDataPoint{
+      tweet: tweet,
+      freq: freqs,
+      timestamp: timestamp,
+      status_id: data["status_id"],
+      embedding_vec: embedding_vec,
+      created_at: created_at,
+      dp_id: idx
+    }
 
-    {agent,
-     %TwitterDataPoint{
-       tweet: tweet,
-       freq: freqs,
-       timestamp: timestamp,
-       status_id: data["status_id"],
-       embedding_vec: embedding_vec,
-       created_at: created_at,
-       dp_id: idx
-     }}
+    agent = %DataAgent{agent | datapoints: Map.put(agent.datapoints, idx, dp)}
+
+    {agent, dp}
   end
 
   defp get_freq_dict(agent, tweet) do
     Enum.reduce(String.split(tweet), {agent, %{}}, fn token, {agent, freqs} ->
-      token_map =
-        Map.update(agent.token_map, token, map_size(agent.token_map) + 1, fn v -> v end)
+      token_map = Map.update(agent.token_map, token, map_size(agent.token_map) + 1, fn v -> v end)
 
       freqs = Map.update(freqs, Map.get(token_map, token), 0, fn value -> value + 1 end)
       {%DataAgent{agent | token_map: token_map}, freqs}

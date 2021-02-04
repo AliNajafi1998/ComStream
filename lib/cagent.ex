@@ -24,11 +24,17 @@ defmodule CAgent do
 
       {:yoink_outliers, pid} ->
         {agent, outliers} = yoink_ouliers(agent)
-        send(pid, outliers)
+        send(pid, {:outliers, self(), outliers})
         inner_loop(agent)
 
       {:handle_old_dps, current_date} ->
         agent = handle_old_dps(agent, current_date)
+        inner_loop(agent)
+
+      {:get_distance, pid, dp} ->
+        {mod, f} = agent.generic_distance_function
+        distance = apply(mod, f, [dp.embedding_vec, agent.centroid])
+        send(pid, {:distance, self(), distance})
         inner_loop(agent)
 
       {:fade_agent_weight, pid, fade_rate, delete_faded_threshold} ->
@@ -57,7 +63,7 @@ defmodule CAgent do
   defp init(agent) do
     %CAgent{
       agent
-      | centroid: Vector.new(768 * 64)
+      | centroid: Vector.new(768)
     }
   end
 

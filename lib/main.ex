@@ -14,7 +14,7 @@ defmodule ComStream do
       verbose: true
     }
 
-    {:ok, {coordinator, _, _}} = Coordinator.train(coordinator)
+    {:ok, coordinator} = Coordinator.train(coordinator)
 
     Enum.map(coordinator.agents, fn x ->
       send(x, {:print})

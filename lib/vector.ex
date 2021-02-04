@@ -16,7 +16,7 @@ defmodule Vector do
   end
 
   def dot(x, y) do
-    :array.sparse_foldl(fn i, x, a -> a + x * :array.get(y, i) end, 0, x)
+    :array.sparse_foldl(fn i, x, a -> a + x * :array.get(i, y) end, 0, x)
   end
 
   def divide(v, s) do

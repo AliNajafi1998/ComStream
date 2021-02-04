@@ -95,11 +95,86 @@ defmodule Coordinator do
         }
       end
     )
+    |> (fn {coordinator, _dps, _first} -> coordinator end).()
+  end
+
+  defp receive_outliers_from(pids, prev_outliers \\ [], dead_agents \\ []) do
+    if Enum.empty?(Map.keys(pids)) do
+      {prev_outliers, dead_agents}
+    else
+      receive do
+        {:outliers, pid, outliers} ->
+          pids = Map.delete(pids, pid)
+          prev_outliers = prev_outliers ++ outliers
+          receive_outliers_from(pids, prev_outliers, dead_agents)
+
+        {:died, pid} ->
+          receive_outliers_from(pids, prev_outliers, dead_agents ++ [pid])
+      after
+        1000 -> throw("No outliers after 1s")
+      end
+    end
+  end
+
+  defp receive_distances_from(pids, distances \\ %{}) do
+    if Enum.empty?(Map.keys(pids)) do
+      distances
+    else
+      receive do
+        {:distance, pid, distance} ->
+          pids = Map.delete(pids, pid)
+          receive_distances_from(pids, Map.put(distances, pid, distance))
+      after
+        1000 -> throw("No distance after 1s")
+      end
+    end
+  end
+
+  defp get_datapoint(coordinator, dp_id) do
+    send(coordinator.data_agent, {:specific_data_point, self(), dp_id})
+    receive do
+      {:datapoint, msg} -> msg
+      {:fail} -> throw("Unknown datapoint")
+    after
+      1000 -> throw("No response to get_datapoint after 1s")
+    end
   end
 
   def handle_outliers(coordinator) do
-    coordinator
+    Enum.map(coordinator.agents, fn pid -> send(pid, {:yoink_outliers, self()}) end)
+    {outliers, dead_agents} = receive_outliers_from(for(x <- coordinator.agents, into: %{}, do: {x, nil}))
+    coordinator = %Coordinator { coordinator | agents: Enum.filter(coordinator.agents, fn el -> not Enum.member?(dead_agents, el) end) }
+    Enum.reduce(outliers, [], fn outlier_id, outliers_to_join ->
+      Enum.map(coordinator.agents, fn pid -> send(pid, {:get_distance, self(), get_datapoint(coordinator, outlier_id)}) end)
+      distances = receive_distances_from(for(x <- coordinator.agents, into: %{}, do: {x, nil}))
+      {similar_agent_id, min_distance} = Enum.reduce(distances, {nil, Float.parse("infinity")}, fn {agent_id, distance}, {similar_agent_id, min_distance} ->
+        if min_distance >= distance do
+          {agent_id, distance}
+        else
+          {similar_agent_id, min_distance}
+        end
+      end)
+
+      if is_nil(similar_agent_id) do
+        IO.warn("Something went wrong")
+        outliers_to_join
+      else
+        outliers_to_join ++ [{outlier_id, min_distance, similar_agent_id}]
+      end
+    end)
+    |> Enum.reduce(coordinator, fn {dp_id, distance, agent_id}, coordinator ->
+      if distance > coordinator.assign_radius do
+        new_agent = create_agent(coordinator, length(coordinator.agents))
+        coordinator = %Coordinator { coordinator | agents: coordinator.agents ++ [new_agent]}
+        send(new_agent, {:add_data_point, get_datapoint(coordinator, dp_id)})
+        coordinator
+      else
+        send(agent_id, {:add_data_point, get_datapoint(coordinator, dp_id)})
+        coordinator
+      end
+    end)
   end
+
 
   def train_loop(coordinator) do
     coordinator
