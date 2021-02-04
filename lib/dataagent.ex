@@ -4,7 +4,8 @@ defmodule TwitterDataPoint do
             timestamp: nil,
             status_id: 0,
             created_at: 0,
-            embedding_vec: nil
+            embedding_vec: nil,
+            dp_id: 0
 end
 
 defmodule DataAgent do
@@ -52,16 +53,18 @@ defmodule DataAgent do
     else
       [data_head | data_tail] = agent.data
       [embedding_head | embedding_tail] = agent.embeddings
-      {agent, dp} = get_twitter_dp(agent, data_head, embedding_head)
+      {agent, dp} = get_twitter_dp(agent, Enum.count(agent.data), data_head, embedding_head)
       {:ok, dp, %DataAgent{agent | data: data_tail, embeddings: embedding_tail}}
     end
   end
 
-  defp get_twitter_dp(agent, data, embeddings) do
+  defp get_twitter_dp(agent, idx, data, embeddings) do
     tweet = data["text"]
     created_at = DateTime.from_iso8601(data["created_at"])
     {agent, freqs} = get_freq_dict(agent, tweet)
     timestamp = DateTime.to_unix(DateTime.now!("Etc/UTC"))
+    embedding_vec = Vector.from_list(embeddings)
+
 
     {agent,
      %TwitterDataPoint{
@@ -69,8 +72,9 @@ defmodule DataAgent do
        freq: freqs,
        timestamp: timestamp,
        status_id: data["status_id"],
-       embedding_vec: embeddings,
-       created_at: created_at
+       embedding_vec: embedding_vec,
+       created_at: created_at,
+       dp_id: idx
      }}
   end
 

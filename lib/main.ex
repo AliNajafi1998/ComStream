@@ -4,11 +4,11 @@ defmodule ComStream do
     File.cd!(app_dir)
     IO.puts(app_dir)
 
-    data_path = Path.join(app_dir, "Data/FA_Preprocessed.pkl")
-    embedding_path = Path.join(app_dir, "Data/FA_Embedding.npy")
+    data_path = Path.join(app_dir, "Data/FA_Preprocessed.bin")
+    embedding_path = Path.join(app_dir, "Data/FA_Embedding.bin")
 
     coordinator = %Coordinator{
-      generic_distance_function: { DistanceFunction, :get_cosine_distance },
+      generic_distance_function: {DistanceFunction, :get_cosine_distance},
       data_file_path: data_path,
       embedding_file_path: embedding_path,
       verbose: true

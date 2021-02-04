@@ -3,6 +3,10 @@ defmodule Vector do
     :array.new(size, [{:default, 0.0}])
   end
 
+  def from_list(list) do
+    :array.from_list(list, 0.0)
+  end
+
   def midpoint(x, y) do
     :array.sparse_map(fn i, a -> (a + :array.get(i, y)) / 2 end, x)
   end

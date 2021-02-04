@@ -1,0 +1,48 @@
+import Library/Data/Json.
+import Library/Data/Map.
+
+var map is \:x x toMap.
+var list is {:*xs ^xs.}.
+
+var data is Array
+    < (map[{ text => 'hello friends this is a test'. created_at => '20210204T095011Z'. }])
+    ; (map[{ text => 'hi there'.                     created_at => '20210204T095011Z'. }])
+    ; (map[{ text => 'well hello friends'.           created_at => '20210204T095011Z'. }])
+    ; (map[{ text => 'oh my gawd'.                   created_at => '20210204T095011Z'. }])
+    ; (map[{ text => 'natsuiro matsuri yaaay'.       created_at => '20210204T095011Z'. }])
+    .
+
+var embeddings is Array
+    < (list[i,, (i: 0..767)])
+    ; (list[i,, (i: 0..767)])
+    ; (list[i,, (i: 0..767)])
+    ; (list[i,, (i: 0..767)])
+    ; (list[i,, (i: 0..767)])
+    .
+
+var file is File tempFileLike: 'yoink.XXXXXX'.
+file open: 'w+'.
+file write: ?>
+import erlastic
+
+djson = <?.
+file write: data toJSON.
+
+file write: ?>
+ejson = <?.
+file write: embeddings toJSON.
+
+file write: ?>
+
+with open('FA_Preprocessed.bin', 'wb') as f:
+    f.write(erlastic.encode(djson))
+
+with open('FA_Embedding.bin', 'wb') as f:
+    f.write(erlastic.encode(ejson))
+<?.
+
+file close.
+
+Shell python: file path.
+
+file delete.

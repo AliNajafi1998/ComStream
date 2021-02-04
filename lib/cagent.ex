@@ -41,7 +41,7 @@ defmodule CAgent do
         end
 
       {:print} ->
-        IO.puts("Agent ##{agent.id}: #{inspect(Map.keys(agent.dps))}")
+        IO.puts("Agent ##{agent.id}: #{inspect(Map.keys(agent.dps))}\n#{inspect(agent.dps)}\n")
         inner_loop(agent)
 
       {:terminate, pid} ->
