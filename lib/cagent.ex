@@ -50,6 +50,24 @@ defmodule CAgent do
         IO.puts("Agent ##{agent.id}: #{inspect(Map.keys(agent.dps))}\n#{inspect(agent.dps)}\n")
         inner_loop(agent)
 
+      {:save_output, path} ->
+        f = File.open!(path, [:write, :utf8])
+        agent.dps
+        |> Enum.each(fn {_k, v} ->
+          IO.write(f, "#{v.tweet}\n\n")
+        end)
+        File.close(f)
+        inner_loop(agent)
+
+      {:save_tweets, path} ->
+        f = File.open!(path)
+        agent.dps
+        |> Enum.each(fn {_k, v} ->
+          IO.write(f, "#{v.status_id}\n\n")
+        end)
+        File.close(f)
+        inner_loop(agent)
+
       {:terminate, pid} ->
         IO.puts("Agent ##{agent.id} now dying")
         send(pid, {:ok})

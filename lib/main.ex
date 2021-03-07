@@ -11,6 +11,7 @@ defmodule ComStream do
       generic_distance_function: {DistanceFunction, :get_cosine_distance},
       data_file_path: data_path,
       embedding_file_path: embedding_path,
+      save_directory_path: app_dir,
       verbose: true
     }
 

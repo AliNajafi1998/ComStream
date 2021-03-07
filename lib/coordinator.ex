@@ -1,7 +1,7 @@
 defmodule Coordinator do
   defstruct init_no_agents: 2,
             init_dp_per_agent: 2,
-            save_output_timestamp: ~T(00:01:00),
+            save_output_interval: ~T(00:00:03),
             communication_interval: ~T(00:01:00),
             sliding_window_interval: ~T(00:01:00),
             assign_radius: 0.24,
@@ -11,6 +11,7 @@ defmodule Coordinator do
             agent_fading_rate: 0.0,
             delete_agent_weight_threshold: 0.0,
             generic_distance_function: nil,
+            save_directory_path: nil,
             data_file_path: nil,
             embedding_file_path: nil,
             dp_count: 10_000_000,
@@ -286,7 +287,63 @@ defmodule Coordinator do
   end
 
   def save(coordinator) do
+    cd = DateTime.to_unix(DateTime.from_naive!(coordinator.current_date, "Etc/UTC"))
+    residual = rem(cd, Time.diff(coordinator.save_output_interval, ~T(00:00:00)))
+
+    IO.puts("Residual is #{residual}")
+    if abs(residual) < 1.0e-7 do
+      coordinator
+      |> handle_old_dps()
+      |> handle_outliers()
+      |> save_model_and_files()
+    else
+      coordinator
+    end
+  end
+
+  def save_model_and_files(coordinator) do
+    output_path =
+      Path.join(
+        coordinator.save_directory_path,
+        "X#{coordinator.current_date}--#{coordinator.dp_count}"
+      )
+
+    coordinator
+    |> save_model(Path.join(output_path, "model"))
+    |> write_output_to_files(Path.join(output_path, "clusters"))
+    |> write_topics_to_files(Path.join(output_path, "topics"))
+    |> write_tweet_ids_to_files(Path.join(output_path, "clusters_tweet_ids"))
+  end
+
+  def write_output_to_files(coordinator, directory)  do
+    File.mkdir_p(directory)
+    coordinator.agents
+    |> Enum.with_index()
+    |> Enum.each(fn {k, v} ->
+      send(k, {:save_output, Path.join(directory, "#{v}.txt")})
+    end)
+    coordinator
+  end
+
+  def write_topics_to_files(coordinator, _directory) do
     # FIXME: Implement me!
+    coordinator
+  end
+
+  def write_tweet_ids_to_files(coordinator, directory) do
+    File.mkdir_p(directory)
+    coordinator.agents
+    |> Enum.with_index()
+    |> Enum.each(fn {k, v} ->
+      send(k, {:save_tweet_ids, Path.join(directory, "#{v}.txt")})
+    end)
+    coordinator
+  end
+
+  def save_model(coordinator, output_path) do
+    File.mkdir_p(output_path)
+    raw_data = :erlang.term_to_binary(coordinator)
+    File.write!(Path.join(output_path, "model.bin"), raw_data)
     coordinator
   end
 
