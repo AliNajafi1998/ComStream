@@ -1,5 +1,5 @@
-from ComStream.ComStream.labse.Coordinator import Coordinator
-from ComStream.ComStream.labse.Utils import get_distance_cosine
+from ComStream.labse.Coordinator import Coordinator
+from ComStream.labse.Utils import get_distance_cosine
 import os
 from pathlib import Path
 import time

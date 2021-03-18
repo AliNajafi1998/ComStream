@@ -114,8 +114,9 @@ class Coordinator:
             with concurrent.futures.ProcessPoolExecutor(max_workers=multiprocessing.cpu_count() - 1) as executor:
                 outliers_id = sum(list(executor.map(self.get_outliers, agents)), [])
         else:
+            outliers_id = []
             for agent_id in self.agents:
-                self.agents[agent_id].get_outliers(outliers_id)
+                outliers_id.extend(self.agents[agent_id].get_outliers())
 
         agents_to_remove = []
         for agent_id in self.agents:
