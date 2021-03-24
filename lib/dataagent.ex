@@ -25,9 +25,18 @@ defmodule DataAgent do
   end
 
   defp inner_loop(agent, count, epsilon) do
+    #IO.warn("Have #{count} dps remaining!")
     receive do
+      {:respond_when_ready, pid} ->
+        send(pid, :ready)
+        inner_loop(agent, count, epsilon)
+
       {:get_next_dp, pid} ->
         # IO.warn("Got request for DP!")
+        if count == 0 do
+          send(pid, {:fail})
+          inner_loop(agent, count, epsilon)
+        end
 
         case get_next_dp(agent) do
           {:ok, data, agent} ->
@@ -53,7 +62,7 @@ defmodule DataAgent do
           data ->
             # IO.puts("Responding with #{inspect(data)}")
             send(pid, {:datapoint, data})
-            inner_loop(agent, count - 1, epsilon)
+            inner_loop(agent, count, epsilon)
         end
 
       {:dump_tokens} ->
@@ -78,8 +87,19 @@ defmodule DataAgent do
   end
 
   defp get_twitter_dp(agent, idx, data, embeddings) do
-    tweet = data["text"]
-    {:ok, created_at, _} = DateTime.from_iso8601(data["created_at"])
+    # IO.inspect(data)
+    # === Twitter mode ===
+    # tweet = data["text"]
+    # date = data["created_at"]
+    # status_id = data["status_id"]
+    # {:ok, created_at, _} = DateTime.from_iso8601(date)
+
+    # === FA Cup mode ===
+    tweet = Enum.at(data, 1)
+    date_str = Enum.at(data, 2)
+    status_id = Enum.at(data, 0)
+    {:ok, created_at, _} = Datix.DateTime.parse(date_str, "%a %b %d %X %z %Y")
+
     {agent, freqs} = get_freq_dict(agent, tweet)
     timestamp = DateTime.to_unix(DateTime.now!("Etc/UTC"))
     embedding_vec = Vector.from_list(embeddings)
@@ -88,7 +108,7 @@ defmodule DataAgent do
       tweet: tweet,
       freq: freqs,
       timestamp: timestamp,
-      status_id: data["status_id"],
+      status_id: status_id,
       embedding_vec: embedding_vec,
       created_at: created_at,
       dp_id: idx

@@ -4,15 +4,15 @@ defmodule ComStream do
     File.cd!(app_dir)
     IO.puts(app_dir)
 
-    data_path = Path.join(app_dir, "Data/FA_Preprocessed.bin")
-    embedding_path = Path.join(app_dir, "Data/FA_Embedding.bin")
+    data_path = Path.join(app_dir, "Data/df_facup_half.bin")
+    embedding_path = Path.join(app_dir, "Data/embedding_facup_half.bin")
 
     coordinator = %Coordinator{
       generic_distance_function: {DistanceFunction, :get_cosine_distance},
       data_file_path: data_path,
       embedding_file_path: embedding_path,
       save_directory_path: app_dir,
-      verbose: true
+      verbose: true,
     }
 
     {:ok, coordinator} = Coordinator.train(coordinator)

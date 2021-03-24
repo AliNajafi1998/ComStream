@@ -1,0 +1,5 @@
+%{
+  "datix": {:hex, :datix, "0.1.1", "58b16bca9e2a2c8fe9f4dc784d2ea657866e0128d6fea6c28a1b1fac7ab9d155", [:mix], [], "hexpm", "57a9c735718d60019483880cabdc19fdf884ac3991d8d6fa8f4ca0cca071a19c"},
+  "elixir_make": {:hex, :elixir_make, "0.6.2", "7dffacd77dec4c37b39af867cedaabb0b59f6a871f89722c25b28fcd4bd70530", [:mix], [], "hexpm", "03e49eadda22526a7e5279d53321d1cced6552f344ba4e03e619063de75348d9"},
+  "matrex": {:hex, :matrex, "0.6.8", "ccb491e661bae7931ee6b0e68f5e1cd28528e5360a59bc3ab4d759b89be1701e", [:make], [{:elixir_make, "~> 0.4", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm", "043ef9fdd9809b012568915f2fc396ea5c5631fd792f75c1148f03d478d60901"},
+}
