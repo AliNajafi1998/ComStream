@@ -1,4 +1,4 @@
-from .DataPoint import TwitterDataPoint
+from DataPoint import TwitterDataPoint
 
 import pandas as pd
 import numpy as np
@@ -39,8 +39,9 @@ class DataManager:
         :param count: how many of the data we want
         :return: None
         """
-        self.raw_data = pd.read_pickle(file_path).reset_index().head(count)
-        self.embedding_vectors = np.load(data_embedding_path)[:count]
+        # self.raw_data = pd.read_pickle(file_path).reset_index().head(count)
+        self.raw_data = pd.read_pickle(file_path).reset_index().iloc[320000:count]
+        self.embedding_vectors = np.load(data_embedding_path)[320000:count]
         if len(self.raw_data) != len(self.embedding_vectors):
             raise ValueError("the data and their embeddings don't have the same length.")
         self.max_data = len(self.raw_data)

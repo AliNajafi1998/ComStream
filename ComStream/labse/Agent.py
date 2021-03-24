@@ -1,7 +1,7 @@
 from typing import Callable
 import numpy as np
 
-from .Utils import get_seconds
+from Utils import get_seconds
 
 
 class Agent:
@@ -50,7 +50,7 @@ class Agent:
         except ValueError:
             print(f'There is no such data point in Agent : {dp_id}')
 
-    def get_outliers(self) -> []:
+    def get_outliers(self, coordinator_instance) -> []:
         """
         getting outliers of agent
         :return: list of ids of outliers
@@ -60,7 +60,16 @@ class Agent:
             dp = self.coordinator.data_agent.data_points[dp_id]
             distance = self.generic_distance_function(dp.embedding_vec, self.centroid)
             if distance > self.outlier_threshold:
+                coordinator_instance.add_transfer_info(dp_id=dp_id,
+                                                       info=f'tweet: {coordinator_instance.data_agent.data_points[dp_id].tweet}')
+
+                coordinator_instance.add_transfer_info(dp_id=dp_id,
+                                                       info=f'outlier in agent: (size={len(self.dp_ids)}) {coordinator_instance.get_agent_topics(self, max_no_keywords=10)}')
+
                 self.remove_data_point(dp_id, outlier=True)
+                coordinator_instance.add_transfer_info(dp_id=dp_id,
+                                                       info=f'outlier in agent "after removing the dp: (size={len(self.dp_ids)}) {coordinator_instance.get_agent_topics(self, max_no_keywords=10)}')
+
                 outliers_id.append(dp_id)
         return outliers_id
 

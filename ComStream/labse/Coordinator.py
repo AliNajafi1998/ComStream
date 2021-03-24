@@ -7,10 +7,10 @@ import re
 import time
 import pickle
 import os
-from .DataManager import DataManager
-from .Agent import Agent
+from DataManager import DataManager
+from Agent import Agent
 from colorama import Fore
-from .Utils import get_seconds
+from Utils import get_seconds
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 
@@ -116,8 +116,7 @@ class Coordinator:
         else:
             outliers_id = []
             for agent_id in self.agents:
-                outliers_id.extend(self.agents[agent_id].get_outliers())
-
+                outliers_id.extend(self.agents[agent_id].get_outliers(self))
         agents_to_remove = []
         for agent_id in self.agents:
             if len(self.agents[agent_id].dp_ids) < 1:
@@ -142,10 +141,34 @@ class Coordinator:
         for dp_id, distance, agent_id in outliers_to_join:
             # print(distance)
             if distance > self.assign_radius:
+                self.add_transfer_info(dp_id=dp_id, info='made a new cluster for itself. \n\n\n')
                 new_agent_id = self.create_agent()
                 self.agents[new_agent_id].add_data_point(self.data_agent.data_points[dp_id])
             else:
+                # if dp_id == 690:
+                #     for one_dp_id in self.agents[agent_id].dp_ids:
+                #         print(self.data_agent.data_points[one_dp_id].tweet)
+                #     print('\n')
+                agent = self.agents[agent_id]
+                # if 'boris' in self.data_agent.data_points[dp_id].tweet.split():
+                if 'boris' in self.data_agent.data_points[dp_id].tweet.split() and 'moved' in self.data_agent.data_points[dp_id].tweet.split():
+                    print(dp_id, self.data_agent.data_points[dp_id].tweet)
+                self.add_transfer_info(dp_id=dp_id, info=f'got reassigned to this agent: (size={len(agent.dp_ids)}) {self.get_agent_topics(agent, max_no_keywords=10)} \n\n\n')
                 self.agents[agent_id].add_data_point(self.data_agent.data_points[dp_id])
+
+    def add_transfer_info(self, dp_id: int, info: str):
+        parent_dir = os.path.join(os.getcwd(), 'outputs/tracked_data')
+        if not os.path.exists(parent_dir):
+            os.makedirs(parent_dir)
+        info = info + '\n'
+        path = os.path.join(os.getcwd(), 'outputs/tracked_data', str(dp_id) + '.txt')
+        self.save_transfer_info_in_file(path, info)
+        # self.data_agent.datapoints[dp_id].tweet
+
+    @staticmethod
+    def save_transfer_info_in_file(path: os.path, info: str):
+        with open(path, 'a', encoding='utf8') as file:
+            file.write(info)
 
     def parallel_outlier_getting(self, agent_ids, index, outliers_id, stop):
         my_processes = []
@@ -240,7 +263,6 @@ class Coordinator:
             Coordinator.dp_counter += 1
             flag = True
             while flag:
-
                 if dp.created_at != Coordinator.prev_date:
                     Coordinator.current_date += pd.Timedelta(seconds=1)
 
@@ -374,6 +396,48 @@ class Coordinator:
                 for dp_id in agent.dp_ids:
                     tweet_id = self.data_agent.data_points[dp_id].status_id
                     file.write(str(tweet_id) + '\n')
+
+    def get_agent_topics(self, agent, max_no_keywords):
+        if len(agent.dp_ids) == 0:
+            return 'empty agent'
+        topics_keywords = []
+        full_corpus = []
+        agent_ids_size = []  # (agent_id, size)
+
+        agent_id = agent.agent_id
+        agent_object = agent
+
+        for dp_id in agent_object.dp_ids:
+            dp_object = self.data_agent.data_points[dp_id]
+            full_corpus.append(dp_object.tweet)
+        vectorizer = TfidfVectorizer()
+        # vectorized_corpus.shape (index of corpus, score of each word
+        # (all the words evens words that don't exist in this sentence))
+        vectorizer.fit(full_corpus)
+        vocab = vectorizer.get_feature_names()  # ind -> word
+
+        # get the biggest agents:
+
+        # get scores for each word in every agent
+        agent_size = len(agent.dp_ids)
+
+        agent_corpus = []
+        for dp_id in agent_object.dp_ids:
+            dp_object = self.data_agent.data_points[dp_id]
+            agent_corpus.append(dp_object.tweet)
+        vectorized_agent_corpus = vectorizer.transform(agent_corpus)
+        cx = scipy.sparse.coo_matrix(vectorized_agent_corpus)
+        agent_word2score = {}
+        for i, j, v in zip(cx.row, cx.col, cx.data):
+            agent_word2score[vocab[j]] = agent_word2score.get(vocab[j], 0.0) + v
+
+        # sort and choose the top no_keywords
+        sorted_keys = list(sorted(agent_word2score, key=agent_word2score.get, reverse=True))  # get the sorted keys
+        sorted_keys = sorted_keys[:min(max_no_keywords, len(sorted_keys))]  # get best keywords
+
+        del vocab
+        del vectorizer
+        return sorted_keys
 
     def get_topics_of_agents(self):
         topics_keywords = []
