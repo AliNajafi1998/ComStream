@@ -8,10 +8,12 @@ defmodule CAgent do
             sliding_window_interval: nil,
             dps: %{}
 
+  @spec loop(CAgent) :: no_return()
   def loop(agent) do
     inner_loop(agent |> init())
   end
 
+  @spec inner_loop(CAgent) :: no_return()
   defp inner_loop(agent) do
     receive do
       {:add_data_point, dp} ->
@@ -24,9 +26,11 @@ defmodule CAgent do
 
       {:yoink_outliers, pid} ->
         {agent, outliers} = yoink_ouliers(agent)
-        send(pid, {:outliers, self(), outliers})
-        inner_loop(agent)
-
+        #IO.inspect({:After_Yoink_Outliers, agent.id, outliers, Map.keys(agent.dps)})
+        send(pid, {:outliers, self(), outliers, Enum.empty?(agent.dps)})
+        if not Enum.empty?(agent.dps) do
+          inner_loop(agent)
+        end
       {:handle_old_dps, current_date} ->
         agent = handle_old_dps(agent, current_date)
         inner_loop(agent)
@@ -48,6 +52,24 @@ defmodule CAgent do
 
       {:print} ->
         IO.puts("Agent ##{agent.id}: #{inspect(Map.keys(agent.dps))}\n#{inspect(agent.dps)}\n")
+        inner_loop(agent)
+
+      {:save_output, path} ->
+        f = File.open!(path, [:write, :utf8])
+        agent.dps
+        |> Enum.each(fn {_k, v} ->
+          IO.write(f, "#{v.tweet}\n\n")
+        end)
+        File.close(f)
+        inner_loop(agent)
+
+      {:save_tweets, path} ->
+        f = File.open!(path)
+        agent.dps
+        |> Enum.each(fn {_k, v} ->
+          IO.write(f, "#{v.status_id}\n\n")
+        end)
+        File.close(f)
         inner_loop(agent)
 
       {:terminate, pid} ->
@@ -77,6 +99,7 @@ defmodule CAgent do
   end
 
   defp remove_data_point(agent, dp) do
+    #IO.warn("Remove DP #{dp.dp_id} from #{agent.id}")
     if Map.has_key?(agent.dps, dp.dp_id) do
       dps = Enum.count(agent.dps)
 
@@ -110,6 +133,7 @@ defmodule CAgent do
         ])
 
       if distance > agent.outlier_threshold do
+        #IO.warn("Distance of #{inspect(el)} to our centroid #{inspect(agent.centroid)} is larger than threshold #{inspect(agent.outlier_threshold)}")
         {remove_data_point(agent, el), outliers ++ [el.dp_id]}
       else
         {agent, outliers}
@@ -119,7 +143,10 @@ defmodule CAgent do
 
   defp handle_old_dps(agent, current_date) do
     Enum.reduce(Map.values(agent.dps), agent, fn dp, agent ->
-      if Time.from_seconds_after_midnight(DateTime.diff(dp.created_at, current_date)) > agent.sliding_window_interval do
+      dt = DateTime.diff(current_date, dp.created_at)
+      dt2 = Time.diff(agent.sliding_window_interval, ~T(00:00:00))
+      if dt > dt2 do
+        #IO.warn("#{dp.dp_id} is too old (#{dp.created_at}-#{current_date} = #{dt} > #{dt2})")
         remove_data_point(agent, dp)
       else
         agent

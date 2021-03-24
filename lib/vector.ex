@@ -1,33 +1,33 @@
 defmodule Vector do
   def new(size) do
-    :array.new(size, [{:default, 0.0}])
+    Matrex.fill(size, 1, 0.0)
   end
 
   def from_list(list) do
-    :array.from_list(list, 0.0)
+    Matrex.new(length(list), 1, fn r, 1 -> Enum.fetch!(list, r - 1) end)
   end
 
   def midpoint(x, y) do
-    :array.sparse_map(fn i, a -> (a + :array.get(i, y)) / 2 end, x)
+    Matrex.divide(Matrex.add(x, y), 2.0)
   end
 
   def normal(x) do
-    :math.sqrt(:array.sparse_foldl(fn _, x, acc -> acc + x * x end, 1.0, x))
+    :math.sqrt(1 + Matrex.sum(Matrex.square(x)))
   end
 
   def dot(x, y) do
-    :array.sparse_foldl(fn i, x, a -> a + x * :array.get(i, y) end, 0, x)
+    Matrex.sum(Matrex.multiply(x, y))
   end
 
   def divide(v, s) do
-    :array.sparse_map(fn _, x -> x / s end, v)
+    Matrex.divide(v, s)
   end
 
   def multiply(v, s) do
-    :array.sparse_map(fn _, x -> x * s end, v)
+    Matrex.multiply(v, s)
   end
 
   def subtract(x, y) do
-    :array.sparse_map(fn i, a -> a - :array.get(i, y) end, x)
+    Matrex.subtract(x, y)
   end
 end
