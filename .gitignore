@@ -16,4 +16,3 @@ ComStream/LDA/output/
 ComStream/outputs/
 *.ipynb_checkpoints
 outputs
-TopicEvaluation
