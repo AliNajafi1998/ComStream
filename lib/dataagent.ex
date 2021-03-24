@@ -14,6 +14,7 @@ defmodule DataAgent do
   @spec loop(String.t(), String.t(), pos_integer, float) :: no_return
   def loop(data_file_path, embedding_path, count, epsilon \\ 0.00000001) do
     raw_data = :erlang.binary_to_term(File.read!(data_file_path))
+    IO.warn("Have #{length(raw_data)} data points")
     raw_embeddings = :erlang.binary_to_term(File.read!(embedding_path))
 
     if length(raw_data) != length(raw_embeddings) do

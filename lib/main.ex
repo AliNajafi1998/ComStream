@@ -18,7 +18,7 @@ defmodule ComStream do
     {:ok, coordinator} = Coordinator.train(coordinator)
 
     Enum.map(coordinator.agents, fn x ->
-      send(x, {:print})
+      # send(x, {:print})
       send(x, {:terminate, self()})
 
       receive do
@@ -26,7 +26,7 @@ defmodule ComStream do
       end
     end)
 
-    send(coordinator.data_agent, {:dump_tokens})
+    # send(coordinator.data_agent, {:dump_tokens})
   end
 
   def main() do
