@@ -23,6 +23,7 @@ class TopicExtractor:
 
     def get_multi_agent_output(self):
         days_clusters = []  # list (day) of list( tuple(cluster_len, texts))
+        print(os.listdir(self.out_days_dir))
         for day_file_name in os.listdir(self.out_days_dir):
             print(self.get_previous_day_date(day_file_name[1:11]))
             self.days.append(day_file_name[1:11])
@@ -102,7 +103,7 @@ class TopicExtractor:
 
 
 if __name__ == '__main__':
-    in_days_dir = os.path.join(Path(os.getcwd()).parent, 'Data/outputs/multi_agent')
-    out_save_dir = os.path.join(Path(os.getcwd()).parent, 'Data/outputs/multi_agent_topics')
-    TE = TopicExtractor(data_dir=in_days_dir, save_dir=out_save_dir, top_n_topics=20, top_n_keywords=20)
+    in_days_dir = os.path.join(Path(os.getcwd()).parent, 'outputs/multi_agent')
+    out_save_dir = os.path.join(Path(os.getcwd()).parent, 'outputs/multi_agent_topics')
+    TE = TopicExtractor(data_dir=in_days_dir, save_dir=out_save_dir, top_n_topics=30, top_n_keywords=30)
     TE.extract_and_save_in_files()

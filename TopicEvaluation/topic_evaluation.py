@@ -2,6 +2,8 @@ import os
 
 
 class Evaluate:
+    already_described_columns = False
+
     def __init__(self, truth_dir, predicted_dir, top_n_topics, top_n_keywords, assigning_keyword_threshold):
         self.truth_dir = truth_dir
         self.predicted_dir = predicted_dir
@@ -115,16 +117,19 @@ class Evaluate:
                     self.no_prediction_keyword += len(self.predicted_topics[ind_day][ind_best_prediction]) - (
                             max_correct_assigned_prediction_keywords - max_found_truth_keywords)
                     self.no_found_prediction_keywords += max_found_truth_keywords
-                else:
-                    print(ind_day, self.truth_topics[ind_day])
+                # else:
+                    # print(ind_day, self.truth_topics[ind_day])
 
         # print(self.no_found_truth_keywords, self.no_truth_keyword)
         # print(self.no_found_prediction_keywords, self.no_prediction_keyword)
         # print(self.no_found_truth_topics, self.no_truth_topics)
 
     def topic_recall(self):
-        print('topic_recall  |  keyword_precision  |  keyword_recall  |  keyword_F_score')
+        if not Evaluate.already_described_columns:
+            print('number of topics  |  topic_recall  |  keyword_precision  |  keyword_recall  |  keyword_F_score')
+            Evaluate.already_described_columns = True
         tr = self.no_found_truth_topics / self.no_truth_topics
+        print(f'{self.top_n_topics}', end='  |  ')
         print("%.3f (%d/%d)" % (tr, self.no_found_truth_topics, self.no_truth_topics), end='  |  ')
 
     def keyword_precision(self):
@@ -153,14 +158,13 @@ class Evaluate:
 if __name__ == '__main__':
     # 'C:/Users/shila/Desktop/covid-stream/Data/outputs/other_topics/LDA'
     # 'C:/Users/shila/Desktop/covid-stream/Data/outputs/multi_agent_topics'
-    # for x in range(20):
-    #     print(x+1,end=':\n')
-    x = 19
-    EV = Evaluate(truth_dir='C:/Users/shila/Desktop/covid-stream/Data/corona_truth',
-                  predicted_dir='C:/Users/shila/Desktop/covid-stream/Data/outputs/multi_agent_topics',
-                  top_n_topics=x + 1,
-                  top_n_keywords=5,
-                  assigning_keyword_threshold=2
-                  # the pred_topic needs at least this many matched keywords for this topic to be considered found
-                  )
-    EV.run()
+    for x in range(2, 21, 2):
+
+        EV = Evaluate(truth_dir='/home/araz/Desktop/GitProjects/a_covid3/ComStream/Data/corona_truth',
+                      predicted_dir='/home/araz/Desktop/GitProjects/a_covid3/ComStream/outputs/multi_agent_topics',
+                      top_n_topics=x,
+                      top_n_keywords=5,
+                      assigning_keyword_threshold=2
+                      # the pred_topic needs at least this many matched keywords for this topic to be considered found
+                      )
+        EV.run()
