@@ -1,0 +1,1 @@
+remdesivir,drug,[trial,testing,tested],treatment

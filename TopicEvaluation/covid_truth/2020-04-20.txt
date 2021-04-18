@@ -1,0 +1,1 @@
+oil,[price,prices],[negetive,crash,low],demand

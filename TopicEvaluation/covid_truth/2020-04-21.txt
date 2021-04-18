@@ -1,0 +1,3 @@
+oil,[price,prices],[negetive,crash,low],demand
+trump,plans,temporarily,[suspend,ban],immigration,[executive,order]
+[oxford,university],[first,start,begin],vaccine,human,trials

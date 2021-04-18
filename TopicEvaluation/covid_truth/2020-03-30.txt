@@ -1,0 +1,1 @@
+doctors,day,national,nurses,heroes,[healthcare,health,care]

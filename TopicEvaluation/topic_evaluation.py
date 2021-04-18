@@ -118,7 +118,7 @@ class Evaluate:
                             max_correct_assigned_prediction_keywords - max_found_truth_keywords)
                     self.no_found_prediction_keywords += max_found_truth_keywords
                 # else:
-                    # print(ind_day, self.truth_topics[ind_day])
+                # print(ind_day, self.truth_topics[ind_day])
 
         # print(self.no_found_truth_keywords, self.no_truth_keyword)
         # print(self.no_found_prediction_keywords, self.no_prediction_keyword)
@@ -156,15 +156,13 @@ class Evaluate:
 
 
 if __name__ == '__main__':
-    # 'C:/Users/shila/Desktop/covid-stream/Data/outputs/other_topics/LDA'
-    # 'C:/Users/shila/Desktop/covid-stream/Data/outputs/multi_agent_topics'
-    for x in range(2, 21, 2):
 
-        EV = Evaluate(truth_dir='/home/araz/Desktop/GitProjects/a_covid3/ComStream/Data/corona_truth',
-                      predicted_dir='/home/araz/Desktop/GitProjects/a_covid3/ComStream/outputs/multi_agent_topics',
-                      top_n_topics=x,
+    for number_of_topics_used in range(2, 21, 2):  # this checks topic counts: @2, @4, @6,..., @20
+        EV = Evaluate(truth_dir=os.path.join(os.getcwd(), 'covid_truth'),
+                      predicted_dir=os.path.join(os.getcwd(), 'covid_predicted'),
+                      top_n_topics=number_of_topics_used,
                       top_n_keywords=5,
-                      assigning_keyword_threshold=2
+                      assigning_keyword_threshold=1
                       # the pred_topic needs at least this many matched keywords for this topic to be considered found
                       )
         EV.run()

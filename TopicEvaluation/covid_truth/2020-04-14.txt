@@ -1,0 +1,2 @@
+trump,president,[press,conf,briefing,conference],news
+student,debt,urge,[stimulus,package],stimulate,economy

@@ -1,0 +1,2 @@
+[doctor,dr],phil,[statement,statements],oprah
+government,announces,taskforce,develop,vaccine
