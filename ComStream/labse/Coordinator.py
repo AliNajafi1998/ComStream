@@ -298,15 +298,15 @@ class Coordinator:
         #                      Coordinator.dp_counter), 'model'))
         self.write_output_to_files(
             os.path.join(os.getcwd(), 'outputs/multi_agent',
-                         'X' + str(Coordinator.current_date).replace(':', '_') + '--' + str(
+                         'saved|' + str(Coordinator.current_date)[:-6].replace(' ', '|') + '|' + str(
                              Coordinator.dp_counter), 'clusters'))
         self.write_topics_to_files(
             os.path.join(os.getcwd(), 'outputs/multi_agent',
-                         'X' + str(Coordinator.current_date).replace(':', '_') + '--' + str(
+                         'saved|' + str(Coordinator.current_date)[:-6].replace(' ', '|') + '|' + str(
                              Coordinator.dp_counter), 'topics'))
         self.write_tweet_ids_to_files(
             os.path.join(os.getcwd(), 'outputs/multi_agent',
-                         'X' + str(Coordinator.current_date).replace(':', '_') + '--' + str(
+                         'saved|' + str(Coordinator.current_date)[:-6].replace(' ', '|') + '|' + str(
                              Coordinator.dp_counter), 'clusters_tweet_ids'))
         if self.verbose == 1:
             print(f'{Fore.YELLOW}{self.current_date} : Save Model and Outputs -> Number of agents : {len(self.agents)}')
