@@ -1,6 +1,6 @@
-# Elixir
+![](https://img.shields.io/badge/Elixir-0.1.0-red) 
 
-**TODO: Add description**
+ComStreamClust algorithm has been implemented in Elixir in a parallel mode.
 
 ## Installation
 
