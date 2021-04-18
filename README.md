@@ -10,7 +10,7 @@ The [COVID-19](https://www.kaggle.com/thelonecoder/labelled-1000k-covid19-datase
 a paper, publicly available in [ComStreamClust](https://arxiv.org/abs/2010.05349) .**
 
 ## System Overview
-![logo](https://github.com/AliNajafi1998/ComStream/blob/dev-algo/ComStream.jpg)
+![logo](https://github.com/AliNajafi1998/ComStream/blob/Labse/ComStream.jpg)
 
 
 
@@ -23,7 +23,7 @@ Data file must be a pandas DataFrame in pickle format having these columns :
  - status_id
 
 For example : 
-![example](https://github.com/AliNajafi1998/ComStream/blob/dev-algo/data-example.png)
+![example](https://github.com/AliNajafi1998/ComStream/blob/Labse/data-example.png)
 
 **warning: Data must be sorted based on created_at in ascending order**
 
