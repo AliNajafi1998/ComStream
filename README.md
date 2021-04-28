@@ -7,7 +7,7 @@
 or a new one. Each cluster acts as an agent, which makes the proposed approach a multi-agent system. There is also a coordinator, who monitors the whole system and 
 coordinates the agent.The proposed approach has been experimented on two datasets:
 The [COVID-19](https://www.kaggle.com/thelonecoder/labelled-1000k-covid19-dataset) and the [FA CUP](http://socialsensor.iti.gr/results/datasets/72-twitter-tdt-dataset). This project has been explained with greater detail in 
-a paper, publicly available in [ComStreamClust](https://arxiv.org/abs/2010.05349) .**
+a paper, publicly available in [ComStreamClust](https://arxiv.org/abs/2010.05349v2) .**
 
 ## System Overview
 ![logo](https://github.com/AliNajafi1998/ComStream/blob/Labse/ComStream.jpg)
