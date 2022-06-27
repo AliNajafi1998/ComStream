@@ -10,7 +10,7 @@ The [COVID-19](https://www.kaggle.com/thelonecoder/labelled-1000k-covid19-datase
 a paper, publicly available in [ComStreamClust](https://arxiv.org/abs/2010.05349v2) .**
 
 ## System Overview
-![logo](https://github.com/AliNajafi1998/ComStream/blob/Labse/ComStream.jpg)
+![logo](https://github.com/AliNajafi1998/ComStream/blob/Labse/ComStreamClust.png)
 
 
 
