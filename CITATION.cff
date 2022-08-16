@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Najafi"
+  given-names: "Ali"
+  orcid: "http://orcid.org/0000-0001-5304-2456"
+
+- family-names: "Gholipour-Shilabin"
+  given-names: "Araz"
+ 
+- family-names: "Dehkharghani"
+  given-names: "Rahim"
+  
+- family-names: "Mohammadpur-Fard"
+  given-names: "Ali"
+  
+- family-names: "Asgari-Chenaghlu"
+  given-names: "Meysam"
+  
+title: "ComStreamClust: a Communicative Multi-Agent Approach to Text Clustering in Streaming Data"
+version: 2.0.4
+doi: 10.1007/s40745-022-00426-4
+date-released: 2022-06-10
+url: "https://github.com/AliNajafi1998/ComStream"
