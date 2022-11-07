@@ -214,14 +214,17 @@ class Coordinator:
         for agent_id, agent in self.agents.items():
             agent.handle_old_dps()
 
-    def train(self):
+    def train(self, start_mode=True):
         """
         the main training function that handles everything
+        for continue training start_mode should be False
         :return: None
         """
-        self.init_agents()
-        self.handle_outliers()
-        Coordinator.dp_counter = self.init_no_agents * self.init_dp_per_agent
+        if start_mode:
+            self.init_agents()
+            self.handle_outliers()
+            Coordinator.dp_counter = self.init_no_agents * self.init_dp_per_agent
+            
         while self.data_agent.has_next_dp():
             dp = self.data_agent.get_next_dp()
             if self.verbose != 0:
